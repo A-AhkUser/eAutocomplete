@@ -148,6 +148,7 @@
 		ControlGetText, _input,, % this.AHKID
 		_s := this._getSelection(), _menu := this.menu
 
+		_match := ""
 		_sVicinity := SubStr(_input, _s, 2), _leftSide := SubStr(_input, 1, _s)
 		if ((StrLen(RegExReplace(_sVicinity, "\s$")) <= 1)
 			&& (RegExMatch(_leftSide, "\S+(?P<IsWord>\s?)$", _m)) ; \n|
@@ -158,7 +159,6 @@
 						if not ((_m:=RTrim(_m, A_Space)) = _choice)
 							this.__hapax(SubStr(_m, 1, 1), _m)
 					}
-					_match := ""
 				} else if (_letter:=SubStr(_m, 1, 1)) {
 					if (_str:=this.sources[ this.source ][_letter]) {
 						if (InStr(_m, "*") && (_parts:=StrSplit(_m, "*")).length() = 2) {
@@ -170,7 +170,7 @@
 						}
 					}
 				}
-		} else _match := ""
+		}
 
 		GuiControl,, % _menu.HWND, % this.delimiter . _match
 		GuiControl, Choose, % _menu.HWND, % _menu._selectedItem:=0
