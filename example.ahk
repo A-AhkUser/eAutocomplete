@@ -65,19 +65,26 @@ if not FileExist(listPath:=A_ScriptDir . "\myList.txt")
 GUIDelimiter := "`n" ; recommended
 GUI, +Delimiter%GUIDelimiter% +hwndGUIID ; +hwndGUIID stores the window handle (HWND) of the GUI in 'GUIID'
 GUI, Font, s14, Segoe UI
-GUI, Color, White, Silver
-A := new eAutocomplete(GUIID, {options: "Section x11 y11 w300 h158 +Limit"
+GUI, Color, White, White
+A := new eAutocomplete(GUIID, {options: "Section x11 y11 w300 h65 +Limit +Resize"
 							, menuOptions: "ys w160 h200 -VScroll"
-							, menuFontOptions: "s9 c2372e0"
-							, menuFontName: "Arial"
-							, onEvent: "A_onEventMonitor"
+							, menuFontOptions: "s9 c002eff"
+							, menuFontName: "Segoe UI"
+							, onEvent: "onEventMonitor"
+							, menuOnEvent: "menuOnEventMonitor"
 							, disabled: false
-							, startAt: 3 ; the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items
+							, startAt: 2 ; the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items
+							, matchModeRegEx: true ; * => dot-star pattern
 							, appendHapax: true ; append hapax legomena ?
 							, delimiter: GUIDelimiter})
 A.addSourceFromFile("myNewList", listPath)
 A.addSource("myOtherList", list)
 A.setSource("myNewList") ; defines the word list to use.
+A.minSize.w := 120
+A.minSize.h := 55
+A.maxSize.w := 300
+A.maxSize.h := 200
+A.onSize := Func("onSizeEventMonitor")
 GUI, Show, AutoSize, eAutocomplete
 OnExit, handleExit
 return
@@ -93,17 +100,22 @@ ExitApp
 !i::MsgBox % st_printArr(eAutocomplete)
 return
 !m::A.setSource("myOtherList")
+!d::A.disabled:=!A.disabled
+!a::A.appendHapax:=!A.appendHapax
 ; -----------------------------------------------------------------------------------------------------------------------/ hotkeys
 
-; callback (optional) /-----------------------------------------------------------------------------------------------------------------------
-A_onEventMonitor(_autocomplete, _input) {
-
-	_input := StrReplace(_input, A_Space, "")
-	if _input is not alnum
-		MsgBox % A_ThisFunc
-
+; callbacks (optional) /-----------------------------------------------------------------------------------------------------------------------
+onEventMonitor(_autocomplete, _input) {
+_input := RegExReplace(_input, "\d", "", _count)
+ToolTip % _count
 }
-; -----------------------------------------------------------------------------------------------------------------------/ callback (optional)
+menuOnEventMonitor(_hwnd) {
+ToolTip % _hwnd
+}
+onSizeEventMonitor(_GUI, _autocomplete, _w, _h, _mousex, _mousey) {
+ToolTip % _GUI "," _autocomplete.HWND "," _w "," _h "," _mousex "," _mousey
+}
+; -----------------------------------------------------------------------------------------------------------------------/ callbacks (optional)
 
 st_printArr(_array, _depth:=5, _indentLevel:="") { ; cf. https://autohotkey.com/boards/viewtopic.php?f=6&t=53
 
