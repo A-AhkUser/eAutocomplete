@@ -60,8 +60,8 @@
 
 	onEvent {
 		set {
-			if (IsFunc(_fn:=value)) {
-				((_fn.minParams = "") && _fn:=Func(_fn))
+			_fn := value
+			if (Bound.Func._isCallableObject(_fn)) {
 				this._onEvent := _fn
 			} else this._onEvent := ""
 		return _fn
@@ -72,8 +72,8 @@
 	}
 	menuOnEvent {
 		set {
-			if (IsFunc(_fn:=value)) {
-				((_fn.minParams = "") && _fn:=Func(_fn))
+			_fn := value
+			if (Bound.Func._isCallableObject(_fn)) {
 				this._menuOnEvent := _fn
 				GuiControl +g, % this.menu.HWND, % _fn
 			} else {
@@ -118,8 +118,8 @@
 	}
 	onSize {
 		set {
-			if (IsFunc(_fn:=value)) {
-				((_fn.minParams = "") && _fn:=Func(_fn))
+			_fn := value
+			if (Bound.Func._isCallableObject(_fn)) {
 				this._onSize := _fn
 			} else this._onSize := ""
 		return _fn
@@ -152,8 +152,11 @@
 
 	}
 	setSource(_source) {
-	if (eAutocomplete.sources.hasKey(_source))
-		return !ErrorLevel:=0, this.source := _source
+	if (eAutocomplete.sources.hasKey(_source)) {
+		GuiControl,, % this.menu.HWND, % this.delimiter
+		GuiControl,, % this.HWND,
+	return !ErrorLevel:=0, this.source := _source
+	}
 	return !ErrorLevel:=1
 	}
 
@@ -171,7 +174,6 @@
 	}
 
 	dispose() {
-		this.sources := []
 		GuiControl -g, % this.HWND
 		this._onEvent := ""
 		this.menuOnEvent := ""
@@ -244,17 +246,17 @@
 				} else if (_letter:=SubStr(_m, 1, 1)) {
 					if (_str:=this.sources[ this.source ][_letter]) {
 						if (InStr(_m, "*") && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) {
-							_match := RegExReplace(_str, "`ami)^(?!" _parts.1 ".*" _parts.2 ").*\n") ; many thanks to AlphaBravo for this regex
+							_match := this.delimiter . RegExReplace(_str, "`ami)^(?!" _parts.1 ".*" _parts.2 ").*\n") ; many thanks to AlphaBravo for this regex
 							((this.delimiter <> "`n") && _match := StrReplace(_match, "`n", this.delimiter))
 						} else {
-							RegExMatch("$" . _str, "i)\Q" . _m . "\E.*\n\Q" . _m . "\E.+?(?=\n)", _match)
+							RegExMatch("$`n" . _str, "i)\n\Q" . _m . "\E.*\n\Q" . _m . "\E.+?(?=\n)", _match)
 							((this.delimiter <> "`n") && _match := StrReplace(_match, "`n", this.delimiter))
 						}
 					}
 				}
 		}
 
-		GuiControl,, % _menu.HWND, % this.delimiter . _match
+		GuiControl,, % _menu.HWND, % _match
 		GuiControl, Choose, % _menu.HWND, % _menu._selectedItem:=0
 
 		; ===================================================================
