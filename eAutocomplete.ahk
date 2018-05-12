@@ -1,4 +1,4 @@
-﻿Class eAutocomplete {
+﻿﻿Class eAutocomplete {
 
 	static sources := []
 
@@ -60,8 +60,8 @@
 
 	onEvent {
 		set {
-			_fn := value
-			if (Bound.Func._isCallableObject(_fn)) {
+			if (IsFunc(_fn:=value)) {
+				((_fn.minParams = "") && _fn:=Func(_fn))
 				this._onEvent := _fn
 			} else this._onEvent := ""
 		return _fn
@@ -72,8 +72,8 @@
 	}
 	menuOnEvent {
 		set {
-			_fn := value
-			if (Bound.Func._isCallableObject(_fn)) {
+			if (IsFunc(_fn:=value)) {
+				((_fn.minParams = "") && _fn:=Func(_fn))
 				this._menuOnEvent := _fn
 				GuiControl +g, % this.menu.HWND, % _fn
 			} else {
@@ -118,8 +118,8 @@
 	}
 	onSize {
 		set {
-			_fn := value
-			if (Bound.Func._isCallableObject(_fn)) {
+			if (IsFunc(_fn:=value)) {
+				((_fn.minParams = "") && _fn:=Func(_fn))
 				this._onSize := _fn
 			} else this._onSize := ""
 		return _fn
