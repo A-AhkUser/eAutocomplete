@@ -1,4 +1,4 @@
-﻿﻿Class eAutocomplete {
+﻿Class eAutocomplete {
 
 	static sources := []
 
