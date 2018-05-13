@@ -67,7 +67,7 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 
 | parameters | description | default value
 | :---: | :---: | :---: |
-| ``options`` | Set the edit control's options. *note: The edit control comes with the `ES_MULTILINE` style - which designates a multiline edit control - regardless of whether the `+Multi` is listed in options. It is coerced due to a internal limitation.* | `Section w150 h35 +Multi`
+| ``options`` | Set the edit control's options. The `+Resize` option may be listed in ``options`` to allow the user to resize both the height and width of the edit control. *note: The edit control comes with the `ES_MULTILINE` style - which designates a multiline edit control - regardless of whether the `+Multi` is listed in options. It is coerced due to a internal limitation.* | `Section w150 h35 +Multi`
 | ``onEvent``* | Associate a function object with the edit control. The value can be either the name of a function or a function reference. | `""`
 | ``menuOptions`` | Set the listbox control's options. | `ys h130 w110 -VScroll`
 | ``onEvent``* | Associate a function object with the listbox control. The value can be either the name of a function or a function reference. | `""`
