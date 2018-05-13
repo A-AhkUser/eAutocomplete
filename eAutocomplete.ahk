@@ -2,27 +2,27 @@
 
 	static sources := []
 
-	source := ""
+	source := "" ; the current word completion's source
 
 	__New(_GUIID, _options) {
 
-	static _o :=
+	static _defaultSettings :=
 	(LTrim Join C
 		{
-			options: "",
-			onEvent: "",
-			menuOptions: "",
-			menuOnEvent: "",
+			options: "", ; edit control's options
+			onEvent: "", ; edit control's g-label (function)
+			menuOptions: "", ; listbox control's options
+			menuOnEvent: "", ; listbox control's g-label (function)
 			menuFontOptions: "",
 			menuFontName: "",
 			disabled: false,
-			delimiter: "`n",
-			startAt: 2,
-			matchModeRegEx: true,
-			appendHapax: false
+			delimiter: "`n", ; the delimiter used by the word list
+			startAt: 2, ; the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items
+			matchModeRegEx: true, ; if set to true, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (dot-star pattern)
+			appendHapax: false ; append hapax legomena ?
 		}
 	)
-	for _option, _value in _options, _params := new _o
+	for _option, _value in _options, _params := new _defaultSettings
 		_params[_option] := _value
 
 		; Gui % _GUIID . ":+LastFoundExist"
@@ -34,16 +34,16 @@
 			return !ErrorLevel:=1
 		DetectHiddenWindows % _detectHiddenWindows
 
-		RegExReplace(_params.options, "i)(^|\s)\K\+?Resize(?=\s|$)",, _resize)
+		RegExMatch(_params.options, "Pi)(^|\s)\K\+?[^-]Resize(?=\s|$)", _resize) ; _resize contains 'true' if the 'Resize' option is specified
 		GUI, % _GUIID . ":Add", Edit, % _params.options . " hwnd_ID",
 		this.AHKID := "ahk_id " . this.HWND:=_ID
 		if (_resize) {
 
 			GuiControlGet, _pos, Pos, % _ID
-			GUI, % _GUIID . ":Add", Text, % "0x12 w11 h11 x" . _posx + _posw - 7 . " y" . _posy + _posh - 7 . " hwnd_ID", % Chr(9698)
+			GUI, % _GUIID . ":Add", Text, % "0x12 w11 h11 x" . _posx + _posw - 7 . " y" . _posy + _posh - 7 . " hwnd_ID", % Chr(9698) ; https://unicode-table.com/fr/25E2/
 			this._szHwnd := _ID
 			_fn := this.__resize.bind(this)
-			GuiControl +g, % _ID, % _fn
+			GuiControl +g, % _ID, % _fn ; set the function object which handles the static control's events
 			this.minSize := {w: 21, h: 21}, this.maxSize := {w: A_ScreenWidth, h: A_ScreenHeight}
 
 		}
@@ -54,14 +54,14 @@
 		_options.remove("disabled"), ObjRawSet(this, "_delimiter", "`n"), ObjRawSet(this, "_startAt", 2)
 		for _option, _value in _options
 			this[_option] := _params[_option]
-		this.disabled := _params.disabled
+		this.disabled := _params.disabled ; both 'onEvent' and 'menuOnEvent' properties must be set prior to set the 'disabled' one
 
 	}
 
 	onEvent {
 		set {
 			if (IsFunc(_fn:=value)) {
-				((_fn.minParams = "") && _fn:=Func(_fn))
+				((_fn.minParams = "") && _fn:=Func(_fn)) ; handles function references as well as function names
 				this._onEvent := _fn
 			} else this._onEvent := ""
 		return _fn
@@ -73,12 +73,12 @@
 	menuOnEvent {
 		set {
 			if (IsFunc(_fn:=value)) {
-				((_fn.minParams = "") && _fn:=Func(_fn))
+				((_fn.minParams = "") && _fn:=Func(_fn)) ; handles function references as well as function names
 				this._menuOnEvent := _fn
-				GuiControl +g, % this.menu.HWND, % _fn
+				GuiControl +g, % this.menu.HWND, % _fn ; set the function object which handles the listbox control's events
 			} else {
 				_hwnd := this.menu.HWND
-				GuiControl -g, % _hwnd
+				GuiControl -g, % _hwnd ; removes the function object bound to the control
 				GuiControl,, % _hwnd, % this.delimiter
 			}
 		return _fn
@@ -119,7 +119,7 @@
 	onSize {
 		set {
 			if (IsFunc(_fn:=value)) {
-				((_fn.minParams = "") && _fn:=Func(_fn))
+				((_fn.minParams = "") && _fn:=Func(_fn)) ; handles function references as well as function names
 				this._onSize := _fn
 			} else this._onSize := ""
 		return _fn
@@ -130,7 +130,7 @@
 	}
 
 	addSourceFromFile(_source, _fileFullPath) {
-		_list := (_f:=FileOpen(_fileFullPath, 4+0, "UTF-8")).read()
+		_list := (_f:=FileOpen(_fileFullPath, 4+0, "UTF-8")).read() ; EOL: 4 > replace `r`n with `n when reading
 		if (A_LastError)
 			return !ErrorLevel:=1, _f.close()
 			this.addSource(_source, _list, _fileFullPath)
@@ -146,9 +146,9 @@
 		ErrorLevel := 0
 		_list := _source.list := LTrim(_list, "`n")
 
-		while ((_letter:=SubStr(_list, 1, 1)) && _pos:=RegExMatch(_list, "Psi)\Q" . _letter . "\E.*\n\Q" . _letter . "\E.+?\n", _len)) {
-			_source[_letter] := SubStr(_list, 1, _pos + _len - 1), _list := SubStr(_list, _pos + _len)
-		}
+		while ((_letter:=SubStr(_list, 1, 1)) && _pos:=RegExMatch(_list, "Psi)\Q" . _letter . "\E.*\n\Q" . _letter . "\E.+?\n", _length)) {
+			_source[_letter] := SubStr(_list, 1, _pos + _length - 1), _list := SubStr(_list, _pos + _length)
+		} ; builds a dictionary from the list
 
 	}
 	setSource(_source) {
@@ -166,7 +166,7 @@
 	return
 		_menu := this.menu
 		if (_prm > 0) {
-			SendMessage, % 0x18B, 0, 0,, % _menu.AHKID
+			SendMessage, % 0x18B, 0, 0,, % _menu.AHKID ; LB_GETCOUNT
 			Control, Choose, % (_menu._selectedItem < ErrorLevel) ? ++_menu._selectedItem : ErrorLevel,, % _menu.AHKID
 		} else Control, Choose, % (_menu._selectedItem - 1 > 0) ? --_menu._selectedItem : 1,, % _menu.AHKID
 		this._endWord()
@@ -174,11 +174,11 @@
 	}
 
 	dispose() {
-		GuiControl -g, % this.HWND
+		GuiControl -g, % this.HWND ; removes the function object bound to the control
 		this._onEvent := ""
 		this.menuOnEvent := ""
 		if (this.hasKey("_szHwnd"))
-			GuiControl -g, % this._szHwnd
+			GuiControl -g, % this._szHwnd ; removes the function object bound to the control
 		this._onSize := ""
 	}
 	; __Delete() {
@@ -189,10 +189,10 @@
 		set {
 			if (this._enabled:=!value) {
 				_fn := this._suggestWordList.bind(this)
-				GuiControl +g, % this.HWND, % _fn
+				GuiControl +g, % this.HWND, % _fn ; set the function object which handles the edit control's events
 				this.menuOnEvent := this._menuOnEvent
 			} else {
-				GuiControl -g, % this.HWND
+				GuiControl -g, % this.HWND ; removes the function object bound to the control
 				this.menuOnEvent := ""
 			}
 		return value
@@ -203,7 +203,7 @@
 	}
 	startAt {
 		set {
-		return this._startAt := (value > 1) ? value : this._startAt
+		return this._startAt := (value > 0) ? value : this._startAt
 		}
 		get {
 		return this._startAt
@@ -233,30 +233,31 @@
 		_s := this._getSelection(), _menu := this.menu
 
 		_match := ""
-		_sVicinity := SubStr(_input, _s, 2), _leftSide := SubStr(_input, 1, _s)
-		if ((StrLen(RegExReplace(_sVicinity, "\s$")) <= 1)
+		_vicinity := SubStr(_input, _s, 2) ; the two characters in the vicinity of the current caret/insert position
+		_leftSide := SubStr(_input, 1, _s)
+		if ((StrLen(RegExReplace(_vicinity, "\s$")) <= 1)
 			&& (RegExMatch(_leftSide, "\S+(?P<IsWord>\s?)$", _m))
 			&& (StrLen(_m) >= this.startAt)) {
-				if (_mIsWord) {
+				if (_mIsWord) { ; if the word is completed...
 					if (this.appendHapax && !InStr(_m, "*")) {
 						ControlGet, _choice, Choice,,, % _menu.AHKID
-						if not ((_m:=RTrim(_m, A_Space)) = _choice)
-							this.__hapax(SubStr(_m, 1, 1), _m)
+						if not ((_m:=RTrim(_m, A_Space)) = _choice) ; if it is not suggested...
+							this.__hapax(SubStr(_m, 1, 1), _m) ; append it to the dictionary
 					}
 				} else if (_letter:=SubStr(_m, 1, 1)) {
 					if (_str:=this.sources[ this.source ][_letter]) {
-						if (InStr(_m, "*") && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) {
-							_match := this.delimiter . RegExReplace(_str, "`ami)^(?!" _parts.1 ".*" _parts.2 ").*\n") ; many thanks to AlphaBravo for this regex
+						if (InStr(_m, "*") && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) { ; if 'matchModeRegEx' is set to true, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (dot-star pattern)
+							_match := RegExReplace(_str, "`ami)^(?!" _parts.1 ".*" _parts.2 ").*\n") ; many thanks to AlphaBravo for this regex
 							((this.delimiter <> "`n") && _match := StrReplace(_match, "`n", this.delimiter))
 						} else {
-							RegExMatch("$`n" . _str, "i)\n\Q" . _m . "\E.*\n\Q" . _m . "\E.+?(?=\n)", _match)
+							RegExMatch("$`n" . _str, "i)\n\K\Q" . _m . "\E.*\n\Q" . _m . "\E.+?(?=\n)", _match)
 							((this.delimiter <> "`n") && _match := StrReplace(_match, "`n", this.delimiter))
 						}
 					}
 				}
 		}
 
-		GuiControl,, % _menu.HWND, % _match
+		GuiControl,, % _menu.HWND, % this.delimiter . _match
 		GuiControl, Choose, % _menu.HWND, % _menu._selectedItem:=0
 
 		; ===================================================================
@@ -273,7 +274,7 @@
 		Sort, _v, D`n U
 		_source.list .= (_source[_letter]:=_v)
 		if (_source.path <> "") {
-			(_f:=FileOpen(_source.path, 4+1, "UTF-8")).write(LTrim(_source.list, "`n")), _f.close()
+			(_f:=FileOpen(_source.path, 4+1, "UTF-8")).write(LTrim(_source.list, "`n")), _f.close() ; EOL: 4 > replace `n with `r`n when writing
 		}
 
 	}
@@ -282,11 +283,11 @@
 		ControlGetText, _input,, % this.AHKID
 		GuiControlGet, _selection,, % this.menu.HWND
 		_selection := Trim(_selection)
-		_s := this._getSelection(_a, _b), _left := SubStr(_input, 1, _s), _right := SubStr(_input, _s + 1)
-		_pos := RegExMatch(_left, "P)\S+$", _l)
-		StringTrimRight, _left, % _left, % _l
-		ControlSetText,, % _left . _selection . _right, % this.AHKID
-		SendMessage, 0xB1, % _pos + 1, % _s + StrLen(_selection) - _l,, % this.AHKID ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
+		_s := this._getSelection(), _leftSide := SubStr(_input, 1, _s), _rightSide := SubStr(_input, _s + 1)
+		_pos := RegExMatch(_leftSide, "P)\S+$", _length)
+		StringTrimRight, _leftSide, % _leftSide, % _length
+		ControlSetText,, % _leftSide . _selection . _rightSide . A_Space, % this.AHKID
+		SendMessage, 0xB1, % _pos + 1, % _s + StrLen(_selection) - _length,, % this.AHKID ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
 
 	}
 
