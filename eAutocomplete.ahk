@@ -10,8 +10,6 @@
 	static sources := {"Default": {list: "", path: ""}}
 
 	source := "" ; the current word completion's source
-	minSize := {w: 21, h: 21}
-	maxSize := {w: A_ScreenWidth, h: A_ScreenHeight}
 	HWND := ""
 	AHKID := ""
 	menu := {HWND: "", AHKID: "", _selectedItem: 0}
@@ -44,6 +42,8 @@
 		return this._menuOnEvent
 		}
 	}
+	minSize := {w: 21, h: 21}
+	maxSize := {w: A_ScreenWidth, h: A_ScreenHeight}
 	onSize {
 		set {
 			if (IsFunc(_fn:=value)) {
@@ -72,6 +72,7 @@
 		return !this._enabled
 		}
 	}
+	matchModeRegEx := true
 	startAt {
 		set {
 		return this._startAt := (value > 0) ? value : this._startAt
@@ -104,7 +105,7 @@
 
 	; ============================ public methods /============================
 
-	__New(_GUIID, _options) {
+	__New(_GUIID, _options:="") {
 
 	static _defaultSettings :=
 	(LTrim Join C
