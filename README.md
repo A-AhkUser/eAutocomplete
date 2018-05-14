@@ -21,11 +21,13 @@ SetWorkingDir % A_ScriptDir
 SendMode, Input
 CoordMode, ToolTip, Screen
 #Warn
+; Windows 8.1 64 bit - Autohotkey v1.1.28.00 32-bit Unicode
 
 #Include %A_ScriptDir%\eAutocomplete.ahk
 
 frenchWords =
 (
+alpha
 accepter
 acclamer
 accolade
@@ -35,9 +37,7 @@ acerbe
 achat
 acheter
 )
-
-GUIDelimiter := "`n" ; recommended
-GUI, +Resize +Delimiter%GUIDelimiter% +hwndGUIID ; +hwndGUIID stores the window handle (HWND) of the GUI in 'GUIID'
+GUI, +Resize +hwndGUIID ; +hwndGUIID stores the window handle (HWND) of the GUI in 'GUIID'
 GUI, Font, s14, Segoe UI
 GUI, Color, White, White
 options :=
@@ -47,12 +47,13 @@ options :=
 		menuOptions: "VScroll r10",
 		startAt: 2, ; the minimum number of characters a user must type before a search is performed
 		matchModeRegEx: true, ;  an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (.*)
-		appendHapax: true, ; hapax legomena will be appended to the current local word list
-		delimiter: GUIDelimiter
+		appendHapax: true ; hapax legomena will be appended to the current local word list
 	}
 )
 A := new eAutocomplete(GUIID, options)
-A.addSource("frenchWords", frenchWords)
+GUIDelimiter := "`n"
+GUI, +Delimiter%GUIDelimiter% ; important
+A.addSource("frenchWords", frenchWords, GUIDelimiter)
 A.setSource("frenchWords") ; defines the word list to use
 GUI, Show, w400 h330, eAutocomplete
 return
@@ -79,7 +80,7 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 | ``menuOptions`` | Set the menu control's options. | `"-VScroll r7"`
 | ``onEvent``* | Associate a function object with the edit control. The value can be either the name of a function or a function reference. | `""`
 | ``disabled``* | Determine whether or not the word completion feature should start off in an initially-disabled state. | `false`
-| ``delimiter``* | Specify the delimiter used by the word list used as source for the word completion. | `` "`n" ``
+| ``delimiter``* | Specify the delimiter used by the word list used as source for the word completion. | `` "`n" `` (recommended)
 | ``startAt``* | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2`
 | ``matchModeRegEx``* | If set to `true`, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (`.*` dot-star pattern). | `true`
 | ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current local word list. | `false`
