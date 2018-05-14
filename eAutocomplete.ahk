@@ -24,7 +24,7 @@
 	; ===================================================================================================
 	; ============================ PUBLIC PROPERTIES /=====================================================
 	; ===================================================================================================
-	static sources := {"Default": {list: "", path: "", delimiter: "`n", _delimiter: "\n"}} ; _delimiter > used for regex
+	static sources := {"Default": {list: "", path: "", delimiter: "`n", _delimiter: "\n"}} ; _delimiter > used with regex
 
 	editOptions := "w150 h35 Multi",
 	menuOptions := "-VScroll r7",
@@ -152,14 +152,14 @@
 		this.disabled := this.disabled ; both the 'onEvent' and the 'onSize' properties must be set prior to set the 'disabled' one
 
 	}
-	addSourceFromFile(_source, _fileFullPath, _delimiter:="`n") {
+	addSourceFromFile(_source, _delimiter:="`n", _fileFullPath:="") {
 		_list := (_f:=FileOpen(_fileFullPath, 4+0, "UTF-8")).read() ; EOL: 4 > replace `r`n with `n when reading
 		if (A_LastError)
 			return !ErrorLevel:=1, _f.close()
-			this.addSource(_source, _list, _fileFullPath, _delimiter)
+			this.addSource(_source, _list, _delimiter, _fileFullPath)
 		return !ErrorLevel:=0, _f.close()
 	}
-	addSource(_source, _list, _fileFullPath:="", _delimiter:="`n") {
+	addSource(_source, _list, _delimiter:="`n", _fileFullPath:="") {
 
 		if _delimiter in `n,`r
 			_d := "\n"
