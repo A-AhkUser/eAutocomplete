@@ -36,12 +36,23 @@
 		{
 			HWND: "",
 			AHKID: "",
-			_selectedItem: 0
+			_selectedItem: "",
+			_selectedItemIndex: 0
 		}
 	)
 	onEvent {
 		set {
 			this._setCallback("_onEvent", value)
+		return this._onEvent
+		}
+		get {
+		return this._onEvent
+		}
+	}
+	useTab := false
+	onSelect {
+		set {
+			this._setCallback("_onSelect", value)
 		return this._onEvent
 		}
 		get {
@@ -134,11 +145,15 @@
 		; --------------------------------------------------------------------------------------------------------------------------------------------------------- hotkeys
 		_fn := this._fnIf := this._isMenuVisible.bind("", this._cbListHwnd)
 		Hotkey, If, % _fn
-			_fn := this._menuSetSelection.bind(this, -1)
-			Hotkey, Up, % _fn
-			_fn := this._menuSetSelection.bind(this, +1)
-			Hotkey, Down, % _fn
-				_fn := this._autocomplete.bind(this, this.AHKID)
+			_fn1 := this._menuSetSelection.bind(this, -1), _fn2 := this._menuSetSelection.bind(this, +1)
+			if (this.useTab) {
+				Hotkey, +Tab, % _fn1
+				Hotkey, Tab, % _fn2
+			} else {
+				Hotkey, Up, % _fn1
+				Hotkey, Down, % _fn2
+			}
+			_fn := this._autocomplete.bind(this, this.AHKID)
 			Hotkey, Enter, % _fn
 		Hotkey, If,
 
@@ -211,8 +226,8 @@
 		_menu := this.menu
 		if (_prm > 0) {
 			SendMessage, 0x0146, 0, 0,, % _menu.AHKID ; CB_GETCOUNT
-			Control, Choose, % (_menu._selectedItem < ErrorLevel) ? ++_menu._selectedItem : ErrorLevel,, % _menu.AHKID
-		} else Control, Choose, % (_menu._selectedItem - 1 > 0) ? --_menu._selectedItem : 1,, % _menu.AHKID
+			Control, Choose, % (_menu._selectedItemIndex < ErrorLevel) ? ++_menu._selectedItemIndex : ErrorLevel,, % _menu.AHKID
+		} else Control, Choose, % (_menu._selectedItemIndex - 1 > 0) ? --_menu._selectedItemIndex : 1,, % _menu.AHKID
 		this._endWord()
 	}
 	_suggestWordList(_eHwnd) {
@@ -244,15 +259,17 @@
 				}
 		}
 		GuiControl,, % _menu.HWND, % this.delimiter . _match
-		GuiControl, Choose, % _menu.HWND, % _menu._selectedItem:=0
-		Control, % (_match) ? "ShowDropDown" : "HideDropDown",,, % _menu.AHKID
 		(this._onEvent && this._onEvent.call(this, _eHwnd, _input))
+		if (_match) {
+			Control, ShowDropDown,,, % _menu.AHKID
+			this._menuSetSelection(+1)
+		} else Control, HideDropDown,,, % _menu.AHKID
 
 	}
 	_endWord(_param:=false) {
 
 		GuiControlGet, _item,, % this.menu.HWND
-		if ((_item:=Trim(_item)) && _param)
+		if ((this.menu._selectedItem:=_item:=Trim(_item)) && _param)
 			return
 		_ahkid := this.AHKID
 		ControlGetText, _input,, % _ahkid
@@ -267,6 +284,7 @@
 	SendMessage, 0xB1, -1,,, % _eAhkid ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
 	Control, HideDropDown,,, % this.menu.AHKID
 	ControlSend,, {Space}, % _eAhkid
+	(this._onSelect && this._onSelect.call(this, this.menu._selectedItem))
 	}
 	__hapax(_letter, _value) {
 
