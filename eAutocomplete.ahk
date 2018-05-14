@@ -26,6 +26,7 @@
 	; ============================ PUBLIC PROPERTIES /=====================================================
 	; ===================================================================================================
 	static sources := {"Default": {list: "", path: ""}}
+
 	editOptions := "w150 h35 Multi",
 	menuOptions := "-VScroll r7",
 	HWND := ""
@@ -127,8 +128,8 @@
 		PostMessage, 0x153, -1, 0,, % this.menu.AHKID := "ahk_id " . (this.menu.HWND:=_cbHwnd) ; CB_SETITEMHEIGHT
 		_fn := this._endWord.bind(this, 1)
 		GuiControl +g, % _cbHwnd, % _fn ; set the function object which handles the combobox control's events
-		VarSetCapacity(COMBOBOXINFO, (cbCOMBOBOXINFO:=(A_PtrSize == 8) ? 64 : 52), 0), NumPut(cbCOMBOBOXINFO, COMBOBOXINFO, 0, "UInt")
-		this._cbListHwnd := (DllCall("GetComboBoxInfo", "Ptr", _cbHwnd, "Ptr", &COMBOBOXINFO)) ? NumGet(COMBOBOXINFO, cbCOMBOBOXINFO - A_PtrSize, "Ptr") : ""
+		VarSetCapacity(COMBOBOXINFO, (_cbCOMBOBOXINFO:=(A_PtrSize == 8) ? 64 : 52), 0), NumPut(_cbCOMBOBOXINFO, COMBOBOXINFO, 0, "UInt")
+		this._cbListHwnd := (DllCall("GetComboBoxInfo", "Ptr", _cbHwnd, "Ptr", &COMBOBOXINFO)) ? NumGet(COMBOBOXINFO, _cbCOMBOBOXINFO - A_PtrSize, "Ptr") : ""
 		; thanks much to qwerty12 > https://autohotkey.com/boards/viewtopic.php?f=5&p=187310#post_content187289
 		; --------------------------------------------------------------------------------------------------------------------------------------------------------- hotkeys
 		_fn := this._fnIf := this._isMenuVisible.bind("", this._cbListHwnd)
@@ -168,7 +169,7 @@
 		}
 		return !ErrorLevel:=1
 	}
-	setDimensions(_minW, _minH, _maxW, _maxH) {
+	setDimensions(_minW:="", _minH:="", _maxW:="", _maxH:="") {
 	_minSz := this._minSize, ((_minW+0 <> "") && _minSz.w := _minW), ((_minH+0 <> "") && _minSz.h := _minH)
 	_maxSz := this._maxSize, ((_maxW+0 <> "") && _maxSz.w := _maxW), ((_maxH+0 <> "") && _maxSz.h := _maxH)
 	}
@@ -221,9 +222,8 @@
 		ControlGetText, _input,, % this.AHKID
 		_caretPos := this._getSelection()
 		_vicinity := SubStr(_input, _caretPos, 2) ; the two characters in the vicinity of the current caret/insert position
-		_leftSide := SubStr(_input, 1, _caretPos)
 		if ((StrLen(RegExReplace(_vicinity, "\s$")) <= 1)
-			&& (RegExMatch(_leftSide, "\S+(?P<IsWord>\s?)$", _m))
+			&& (RegExMatch(SubStr(_input, 1, _caretPos), "\S+(?P<IsWord>\s?)$", _m))
 			&& (StrLen(_m) >= this.startAt)) {
 				if (_mIsWord) { ; if the word is completed...
 					if (this.appendHapax && !InStr(_m, "*")) {
@@ -234,10 +234,10 @@
 				} else if (_letter:=SubStr(_m, 1, 1)) {
 					if (_str:=(eAutocomplete.sources[ this._source ])[_letter]) {
 						if (InStr(_m, "*") && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) { ; if 'matchModeRegEx' is set to true, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (dot-star pattern)
-							_match := RegExReplace(_str, "`ami)^(?!" _parts.1 ".*" _parts.2 ").*\n") ; many thanks to AlphaBravo for this regex
+							_match := RegExReplace(_str, "`nmi)^(?!\Q" . _parts.1 . "\E.*\Q" . _parts.2 . "\E).*\n") ; many thanks to AlphaBravo for this regex
 							((this.delimiter <> "`n") && _match := StrReplace(_match, "`n", this.delimiter))
 						} else {
-							RegExMatch("$`n" . _str, "i)\n\K\Q" . _m . "\E.*\n\Q" . _m . "\E.+?(?=\n)", _match)
+							RegExMatch(_str, "`nmsi)^\Q" . _m . "\E\S+?\n(.*\Q" . _m . "\E.+?\n)?", _match)
 							((this.delimiter <> "`n") && _match := StrReplace(_match, "`n", this.delimiter))
 						}
 					}
@@ -266,7 +266,7 @@
 	_autocomplete(_eAhkid) {
 	SendMessage, 0xB1, -1,,, % _eAhkid ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
 	Control, HideDropDown,,, % this.menu.AHKID
-	ControlSend,, {Space}, % _eAhkid ; arabic alphabets should also be considered ({Left}?)
+	ControlSend,, {Space}, % _eAhkid
 	}
 	__hapax(_letter, _value) {
 
