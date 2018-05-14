@@ -10,21 +10,9 @@ CoordMode, ToolTip, Screen
 
 if not (FileExist(listPath:=A_ScriptDir . "\englishWordList.txt"))
 	UrlDownloadToFile, https://raw.githubusercontent.com/A-AhkUser/keypad-library/master/Keypad/Autocompletion/en, % listPath
-frenchWords =
-(
-alpha
-accepter
-acclamer
-accolade
-accroche
-accuser
-acerbe
-achat
-acheter
-)
+frenchWords = alpha|accepter|acclamer|accolade|accroche|accuser|acerbe|achat|acheter
 
-GUIDelimiter := "`n" ; recommended
-GUI, +Resize +Delimiter%GUIDelimiter% +hwndGUIID ; +hwndGUIID stores the window handle (HWND) of the GUI in 'GUIID'
+GUI, +Resize +hwndGUIID ; +hwndGUIID stores the window handle (HWND) of the GUI in 'GUIID'
 GUI, Font, s14, Segoe UI
 GUI, Color, White, White
 options :=
@@ -38,14 +26,17 @@ options :=
 		menuOptions: "VScroll r10",
 		startAt: 2, ; the minimum number of characters a user must type before a search is performed
 		matchModeRegEx: true, ;  an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (.*)
-		appendHapax: true, ; hapax legomena will be appended to the current local word list
-		delimiter: GUIDelimiter
+		appendHapax: true ; hapax legomena will be appended to the current local word list
 	}
 )
 A := new eAutocomplete(GUIID, options)
-; A.addSourceFromFile("englishWordList", listPath)
+GUIDelimiter := "`n"
+; GUI, +Delimiter%GUIDelimiter% ; important
+; A.addSourceFromFile("englishWordList", listPath, GUIDelimiter)
 ; A.setSource("englishWordList")
-A.addSource("frenchWords", frenchWords)
+GUIDelimiter := "|"
+GUI, +Delimiter%GUIDelimiter% ; important
+A.addSource("frenchWords", frenchWords,, GUIDelimiter)
 A.setSource("frenchWords") ; defines the word list to use
 A.setDimensions(minWidth:=120, minHeight:=55)
 A.onSize := Func("onSizeEventMonitor")
