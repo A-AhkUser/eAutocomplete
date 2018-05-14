@@ -196,7 +196,7 @@
 		this._onSize := ""
 		_fn := this._fnIf, _f := Func("WinActive")
 		Hotkey, If, % _fn
-			for _, _keyName in ["Up", "Down", "Enter"]
+			for _, _keyName in this.useTab ? ["+Tab", "Tab", "Enter"] : ["Up", "Down", "Enter"]
 				Hotkey, % _keyName, % _f
 		Hotkey, If,
 	}
@@ -262,8 +262,8 @@
 		(this._onEvent && this._onEvent.call(this, _eHwnd, _input))
 		if (_match) {
 			Control, ShowDropDown,,, % _menu.AHKID
-			this._menuSetSelection(+1)
 		} else Control, HideDropDown,,, % _menu.AHKID
+		_menu._selectedItemIndex := 0
 
 	}
 	_endWord(_param:=false) {
@@ -284,7 +284,8 @@
 	SendMessage, 0xB1, -1,,, % _eAhkid ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
 	Control, HideDropDown,,, % this.menu.AHKID
 	ControlSend,, {Space}, % _eAhkid
-	(this._onSelect && this._onSelect.call(this, this.menu._selectedItem))
+	if (this.menu._selectedItemIndex)
+		(this._onSelect && this._onSelect.call(this, this.menu._selectedItem))
 	}
 	__hapax(_letter, _value) {
 
