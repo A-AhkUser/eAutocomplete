@@ -11,7 +11,6 @@
 	_source := "Default"
 	_onEvent := ""
 	_enabled := true
-	_delimiter := "`n"
 	_startAt := 2
 	_parent := "0x0"
 	_szHwnd := "0x0"
@@ -25,7 +24,7 @@
 	; ===================================================================================================
 	; ============================ PUBLIC PROPERTIES /=====================================================
 	; ===================================================================================================
-	static sources := {"Default": {list: "", path: ""}}
+	static sources := {"Default": {list: "", path: "", delimiter: "`n", _delimiter: "\n"}} ; _delimiter > used for regex
 
 	editOptions := "w150 h35 Multi",
 	menuOptions := "-VScroll r7",
@@ -53,10 +52,10 @@
 	onSelect {
 		set {
 			this._setCallback("_onSelect", value)
-		return this._onEvent
+		return this._onSelect
 		}
 		get {
-		return this._onEvent
+		return this._onSelect
 		}
 	}
 	_minSize := {w: 51, h: 21}
@@ -95,14 +94,6 @@
 		return this._startAt
 		}
 	}
-	delimiter {
-		set {
-		return this._delimiter := (StrLen(value) = 1) ? value : this._delimiter
-		}
-		get {
-		return this._delimiter
-		}
-	}
 	matchModeRegEx := true
 	; ===================================================================================================
 	; ============================/ PUBLIC PROPERTIES ====================================================
@@ -113,6 +104,7 @@
 	; ===================================================================================================
 	__New(_GUIID, _options:="") {
 
+		(_options || _options:={})
 		_options.remove("disabled")
 		for _option, _value in _options
 			this[_option] := _value
@@ -160,25 +152,37 @@
 		this.disabled := this.disabled ; both the 'onEvent' and the 'onSize' properties must be set prior to set the 'disabled' one
 
 	}
-	addSourceFromFile(_source, _fileFullPath) {
+	addSourceFromFile(_source, _fileFullPath, _delimiter:="`n") {
 		_list := (_f:=FileOpen(_fileFullPath, 4+0, "UTF-8")).read() ; EOL: 4 > replace `r`n with `n when reading
 		if (A_LastError)
 			return !ErrorLevel:=1, _f.close()
-			this.addSource(_source, _list, _fileFullPath)
+			this.addSource(_source, _list, _fileFullPath, _delimiter)
 		return !ErrorLevel:=0, _f.close()
 	}
-	addSource(_source, _list, _fileFullPath:="") {
-		_sources := eAutocomplete.sources, _source := _sources[_source] := {path: _fileFullPath}, _list := "`n" . _list . "`n"
-		Sort, _list, D`n U
+	addSource(_source, _list, _fileFullPath:="", _delimiter:="`n") {
+
+		if _delimiter in `n,`r
+			_d := "\n"
+		else if (_delimiter = A_Tab)
+			_d := "\t"
+		else if _delimiter in \,.,*,?,+,[,],{,},|,(,),^,$
+			_d := "\" . _delimiter
+		else if not (StrLen(_delimiter) = 1)
+			return !ErrorLevel:=1
+		_sources := eAutocomplete.sources, _source := _sources[_source] := {path: _fileFullPath, delimiter: _delimiter, _delimiter: _d}
+		_list := _delimiter . _list . _delimiter
+		Sort, _list, D%_delimiter% U
 		ErrorLevel := 0
-		_list := _source.list := LTrim(_list, "`n")
-		while ((_letter:=SubStr(_list, 1, 1)) && _pos:=RegExMatch(_list, "Psi)\Q" . _letter . "\E.*\n\Q" . _letter . "\E.+?\n", _length)) {
+		_list := _source.list := LTrim(_list, _delimiter)
+		while ((_letter:=SubStr(_list, 1, 1)) && _pos:=RegExMatch(_list, "Psi)\Q" . _letter . "\E.*" . _d . "\Q" . _letter . "\E.+?" . _d, _length)) {
 			_source[_letter] := SubStr(_list, 1, _pos + _length - 1), _list := SubStr(_list, _pos + _length)
 		} ; builds a dictionary from the list
+
+	return true
 	}
 	setSource(_source) {
 		if (eAutocomplete.sources.hasKey(_source)) {
-			GuiControl,, % this.menu.HWND, % this.delimiter
+			GuiControl,, % this.menu.HWND, % this.sources[ this._source ].delimiter
 			GuiControl,, % this.HWND,
 		return !ErrorLevel:=0, this._source := _source
 		}
@@ -232,7 +236,7 @@
 	}
 	_suggestWordList(_eHwnd) {
 
-		_menu := this.menu
+		_menu := this.menu, _source := eAutocomplete.sources[ this._source ]
 		_match := ""
 		ControlGetText, _input,, % this.AHKID
 		_caretPos := this._getSelection()
@@ -247,18 +251,17 @@
 							this.__hapax(SubStr(_m, 1, 1), _m) ; append it to the dictionary
 					}
 				} else if (_letter:=SubStr(_m, 1, 1)) {
-					if (_str:=(eAutocomplete.sources[ this._source ])[_letter]) {
+					if (_str:=_source[_letter]) {
+						_d := _source._delimiter
 						if (InStr(_m, "*") && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) { ; if 'matchModeRegEx' is set to true, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (dot-star pattern)
-							_match := RegExReplace(_str, "`nmi)^(?!\Q" . _parts.1 . "\E.*\Q" . _parts.2 . "\E).*\n") ; many thanks to AlphaBravo for this regex
-							((this.delimiter <> "`n") && _match := StrReplace(_match, "`n", this.delimiter))
+							_match := RegExReplace(_str, "`nmi)^(?!\Q" . _parts.1 . "\E.*\Q" . _parts.2 . "\E).*" . _d) ; many thanks to AlphaBravo for this regex
 						} else {
-							RegExMatch(_str, "`nmsi)^\Q" . _m . "\E\S+?\n(.*\Q" . _m . "\E.+?\n)?", _match)
-							((this.delimiter <> "`n") && _match := StrReplace(_match, "`n", this.delimiter))
+							RegExMatch(_str, "`nmsi)^\Q" . _m . "\E\S+?" . _d . "(.*\Q" . _m . "\E.+?" . _d . ")?", _match)
 						}
 					}
 				}
 		}
-		GuiControl,, % _menu.HWND, % this.delimiter . _match
+		GuiControl,, % _menu.HWND, % _source.delimiter . _match
 		(this._onEvent && this._onEvent.call(this, _eHwnd, _input))
 		if (_match) {
 			Control, ShowDropDown,,, % _menu.AHKID
@@ -292,11 +295,11 @@
 		if ((_source:=eAutocomplete.sources[ this._source ]).hasKey(_letter))
 			_source.list := StrReplace(_source.list, _source[_letter], "")
 		else _source[_letter] := ""
-		_v := _source[_letter] . _value . "`n"
-		Sort, _v, D`n U
+		_v := _source[_letter] . _value . _delimiter:=_source.delimiter
+		Sort, _v, D%_delimiter% U
 		_source.list .= (_source[_letter]:=_v)
 		if (_source.path <> "") {
-			(_f:=FileOpen(_source.path, 4+1, "UTF-8")).write(LTrim(_source.list, "`n")), _f.close() ; EOL: 4 > replace `n with `r`n when writing
+			(_f:=FileOpen(_source.path, 4+1, "UTF-8")).write(LTrim(_source.list, _delimiter)), _f.close() ; EOL: 4 > replace `n with `r`n when writing
 		}
 
 	}
