@@ -83,6 +83,8 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 | ``startAt``* | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2`
 | ``matchModeRegEx``* | If set to `true`, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (`.*` dot-star pattern). | `true`
 | ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current local word list. | `false`
+| ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. | `""`
+| ``useTab``* | If the value evaluates to `true`, users can use the TAB key to select an item from the drop-down list. | `false`
 ##
 ### Available methods
 
