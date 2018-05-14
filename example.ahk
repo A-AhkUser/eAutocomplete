@@ -32,11 +32,11 @@ options :=
 A := new eAutocomplete(GUIID, options)
 GUIDelimiter := "`n"
 ; GUI, +Delimiter%GUIDelimiter% ; important
-; A.addSourceFromFile("englishWordList", listPath, GUIDelimiter)
+; A.addSourceFromFile("englishWordList", GUIDelimiter, listPath)
 ; A.setSource("englishWordList")
 GUIDelimiter := "|"
 GUI, +Delimiter%GUIDelimiter% ; important
-A.addSource("frenchWords", frenchWords,, GUIDelimiter)
+A.addSource("frenchWords", frenchWords, GUIDelimiter)
 A.setSource("frenchWords") ; defines the word list to use
 A.setDimensions(minWidth:=120, minHeight:=55)
 A.onSize := Func("onSizeEventMonitor")
