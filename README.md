@@ -87,10 +87,72 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. | `""`
 | ``useTab``* | If the value evaluates to `true`, users can use the TAB key to select an item from the drop-down list. | `false`
 ##
-### Available methods
+## Available methods
 
-* setsource
-* addSource
-* addSourceFromFile
-* setdimensions
-* dispose
+* **setSource**
+* **addSource**
+* **addSourceFromFile**
+
+###
+
+```AutoHotkey
+A.setSource(_source)
+```
+##### description:
+Specifies the autocomplete list to use.
+
+| parameters | description |
+|:-|:-|
+| ``_source`` | The name of a source that was previously defined with ``addSource`` or ``addSourceFromFile``. |
+##
+```AutoHotkey
+A.addSource(_source, _list, _delimiter:="`n")
+```
+##### description:
+Creates a new autocomplete dictionary from an input string, storing it directly in the base object.
+
+| parameters | description |
+|:-|:-|
+| ``_source`` | The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
+| ``_list`` | The list as string. |
+| ``_delimiter`` [OPTIONAL] | The delimiter which seperates each item in the list. |
+##
+```AutoHotkey
+A.addSourceFromFile(_source, _fileFullPath, _delimiter:="`n")
+```
+##### description:
+Creates a new autocomplete dictionary from a file's content, storing it directly in the base object.
+
+| parameters | description |
+|:-|:-|
+| ``_source`` | The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
+| ``_fileFullPath`` | The absolute path of the file to read. |
+| ``_delimiter`` [OPTIONAL] | The delimiter which seperates each item in the list. |
+
+##
+## Event handling
+
+```AutoHotkey
+A.onEvent := Func("myEventMonitor")
+```
+##### description:
+Executes a custom function each time the user or the script itself changes the contents of the edit control.
+The function can optionally accept the following parameters:</br>
+``myEventMonitor(this, _eHwnd, _input)``
+
+| parameters | description |
+|:-|:-|
+| ``_eHwnd`` | Contains the edit control's HWND. |
+| ``_input`` | Contains the edit control's current content. |
+##
+```AutoHotkey
+A.onSelect := Func("mySelectEventMonitor")
+```
+##### description:
+Executes a custom function when the user selects a suggestion from the drop-down list (by pressing `Enter`).
+The function can optionally accept the following parameters:</br>
+``mySelectEventMonitor(this, _selection)``
+
+| parameters | description |
+|:-|:-|
+| ``_selection`` | Contains the text of the suggestion selected by the user. |
