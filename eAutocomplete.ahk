@@ -128,7 +128,7 @@
 		; --------------------------------------------------------------------------------------------------------------------------------------------------------- combobox control
 		RegExReplace(this.menuOptions, "(^|\s)\K(x|y|w|h)(\d+)", "") ; remove dimensions and/or coordinates if any - we want our own stuff happening
 		GUI, % _GUIID . ":Add", ComboBox, % this.menuOptions . " +Hidden -Sort -0x800 hwnd_cbHwnd " . Format("x{1} y{2} w{3}", _posx, _posy + _posh - 7, _posw) ; CBS_DISABLENOSCROLL
-		PostMessage, 0x153, -1, 0,, % this.menu.AHKID := "ahk_id " . (this.menu.HWND:=_cbHwnd) ; CB_SETITEMHEIGHT
+		this.menu.AHKID := "ahk_id " . (this.menu.HWND:=_cbHwnd)
 		_fn := this._endWord.bind(this, 1)
 		GuiControl +g, % _cbHwnd, % _fn ; set the function object which handles the combobox control's events
 		VarSetCapacity(COMBOBOXINFO, (_cbCOMBOBOXINFO:=(A_PtrSize == 8) ? 64 : 52), 0), NumPut(_cbCOMBOBOXINFO, COMBOBOXINFO, 0, "UInt")
@@ -152,7 +152,7 @@
 		this.disabled := this.disabled ; both the 'onEvent' and the 'onSize' properties must be set prior to set the 'disabled' one
 
 	}
-	addSourceFromFile(_source, _fileFullPath:="", _delimiter:="`n") {
+	addSourceFromFile(_source, _fileFullPath, _delimiter:="`n") {
 		_list := (_f:=FileOpen(_fileFullPath, 4+0, "UTF-8")).read() ; EOL: 4 > replace `r`n with `n when reading
 		if (A_LastError)
 			return !ErrorLevel:=1, _f.close()
@@ -169,6 +169,7 @@
 			_d := "\" . _delimiter
 		else if not (StrLen(_delimiter) = 1)
 			return !ErrorLevel:=1
+		else _d := _delimiter
 		_sources := eAutocomplete.sources, _source := _sources[_source] := {path: _fileFullPath, delimiter: _delimiter, _delimiter: _d}
 		_list := _delimiter . _list . _delimiter
 		Sort, _list, D%_delimiter% U
@@ -327,7 +328,8 @@
 			GuiControl, MoveDraw, % _szHwnd, % "x" . (_posx + _posw - 7) . " y" . _y:=(_posy + _posh - 7)
 		sleep, 15
 		}
-		GuiControl, Move, % this.menu.HWND, % "w" . _posw . " y" . _y - 27
+		GuiControlGet, _ps, Pos, % _mHwnd:=this.menu.HWND
+		GuiControl, Move, % _mHwnd, % "w" . _posw . " y" . _y - _psh + 7
 
 		CoordMode, Mouse, % _coordModeMouse
 
