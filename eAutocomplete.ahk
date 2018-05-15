@@ -152,7 +152,7 @@
 		this.disabled := this.disabled ; both the 'onEvent' and the 'onSize' properties must be set prior to set the 'disabled' one
 
 	}
-	addSourceFromFile(_source, _delimiter:="`n", _fileFullPath:="") {
+	addSourceFromFile(_source, _fileFullPath:="", _delimiter:="`n") {
 		_list := (_f:=FileOpen(_fileFullPath, 4+0, "UTF-8")).read() ; EOL: 4 > replace `r`n with `n when reading
 		if (A_LastError)
 			return !ErrorLevel:=1, _f.close()
@@ -175,7 +175,7 @@
 		ErrorLevel := 0
 		_list := _source.list := LTrim(_list, _delimiter)
 		while ((_letter:=SubStr(_list, 1, 1)) && _pos:=RegExMatch(_list, "Psi)\Q" . _letter . "\E.*" . _d . "\Q" . _letter . "\E.+?" . _d, _length)) {
-			_source[_letter] := SubStr(_list, 1, _pos + _length - 1), _list := SubStr(_list, _pos + _length)
+			_source[_letter] := _delimiter . SubStr(_list, 1, _pos + _length - 1), _list := SubStr(_list, _pos + _length)
 		} ; builds a dictionary from the list
 
 	return true
@@ -237,7 +237,7 @@
 	_suggestWordList(_eHwnd) {
 
 		_menu := this.menu, _source := eAutocomplete.sources[ this._source ]
-		_match := ""
+		_match := _source.delimiter
 		ControlGetText, _input,, % this.AHKID
 		_caretPos := this._getSelection()
 		_vicinity := SubStr(_input, _caretPos, 2) ; the two characters in the vicinity of the current caret/insert position
@@ -254,16 +254,16 @@
 					if (_str:=_source[_letter]) {
 						_d := _source._delimiter
 						if (InStr(_m, "*") && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) { ; if 'matchModeRegEx' is set to true, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (dot-star pattern)
-							_match := RegExReplace(_str, "`nmi)^(?!\Q" . _parts.1 . "\E.*\Q" . _parts.2 . "\E).*" . _d) ; many thanks to AlphaBravo for this regex
+							_match := RegExReplace(_str, "`nmi)" . _d . "(?!\Q" . _parts.1 . "\E[^" . _d . "]+\Q" . _parts.2 . "\E).+?(?=" . _d . ")") ; I am particularly indebted to AlphaBravo for this regex
 						} else {
-							RegExMatch(_str, "`nmsi)^\Q" . _m . "\E\S+?" . _d . "(.*\Q" . _m . "\E.+?" . _d . ")?", _match)
+							RegExMatch(_str, "`nsmi)" . _d . _m . "[^" . _d . "]+(.*" . _d . _m . ".+?(?=" . _d . "))?", _match)
 						}
 					}
 				}
 		}
-		GuiControl,, % _menu.HWND, % _source.delimiter . _match
+		GuiControl,, % _menu.HWND, % _match
 		(this._onEvent && this._onEvent.call(this, _eHwnd, _input))
-		if (_match) {
+		if (_match <> _source.delimiter) {
 			Control, ShowDropDown,,, % _menu.AHKID
 		} else Control, HideDropDown,,, % _menu.AHKID
 		_menu._selectedItemIndex := 0
