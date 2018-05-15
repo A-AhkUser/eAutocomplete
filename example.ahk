@@ -30,9 +30,9 @@ options :=
 	}
 )
 A := new eAutocomplete(GUIID, options)
-GUIDelimiter := "`n"
+; GUIDelimiter := "`n"
 ; GUI, +Delimiter%GUIDelimiter% ; important
-; A.addSourceFromFile("englishWordList", GUIDelimiter, listPath)
+; A.addSourceFromFile("englishWordList", listPath, GUIDelimiter)
 ; A.setSource("englishWordList")
 GUIDelimiter := "|"
 GUI, +Delimiter%GUIDelimiter% ; important
