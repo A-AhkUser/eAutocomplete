@@ -134,6 +134,7 @@
 		VarSetCapacity(COMBOBOXINFO, (_cbCOMBOBOXINFO:=(A_PtrSize == 8) ? 64 : 52), 0), NumPut(_cbCOMBOBOXINFO, COMBOBOXINFO, 0, "UInt")
 		this._cbListHwnd := (DllCall("GetComboBoxInfo", "Ptr", _cbHwnd, "Ptr", &COMBOBOXINFO)) ? NumGet(COMBOBOXINFO, _cbCOMBOBOXINFO - A_PtrSize, "Ptr") : ""
 		; thanks much to qwerty12 > https://autohotkey.com/boards/viewtopic.php?f=5&p=187310#post_content187289
+		this.__resize.call(this, _cbHwnd)
 		; --------------------------------------------------------------------------------------------------------------------------------------------------------- hotkeys
 		_fn := this._fnIf := this._isMenuVisible.bind("", this._cbListHwnd)
 		Hotkey, If, % _fn
@@ -325,11 +326,11 @@
 			GuiControl, Move, % _eHwnd, % "w" . _w . " h" . _h
 			(this.onSize && this.onSize.call(A_GUI, this, _w, _h, _mousex, _mousey))
 			GuiControlGet, _pos, Pos, % _eHwnd
-			GuiControl, MoveDraw, % _szHwnd, % "x" . (_posx + _posw - 7) . " y" . _y:=(_posy + _posh - 7)
+			GuiControl, MoveDraw, % _szHwnd, % "x" . (_posx + _posw - 7) . " y" . _posy + _posh - 7
 		sleep, 15
 		}
 		GuiControlGet, _ps, Pos, % _mHwnd:=this.menu.HWND
-		GuiControl, Move, % _mHwnd, % "w" . _posw . " y" . _y - _psh + 7
+		GuiControl, Move, % _mHwnd, % "w" . _posw . " y" . _posy + _posh - _psh
 
 		CoordMode, Mouse, % _coordModeMouse
 
