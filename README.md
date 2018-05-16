@@ -14,6 +14,7 @@ The script enables users, as typing in the Edit control, to quickly find and sel
 
 * Use both the `Down` and `Up` arrow keys on your keyboard to select from the list of available suggestions.
 * Press the `TAB` key to select an item from the drop-down list.
+* The drop-down list can be closed by pressing the `ESC` key.
 * Use both the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
 
 By default, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression, matching zero or more occurrences of any character (for example, ' **v**\***o** ' matches ' **v**olcan**o** '). As for *hapax legomena* they are by default appended to the current list, whether it is a variable or a file (see also: [options](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options)).
