@@ -138,6 +138,8 @@
 			Hotkey, !Right, % _fn2
 			_fn := this._autocomplete.bind(this, this.AHKID)
 			Hotkey, Tab, % _fn
+			_fn := this._menuReset.bind(this)
+			Hotkey, Escape, % _fn
 		Hotkey, If,
 		OnMessage(0x03, this._menuHide.bind("", _menuWindowHwnd)) ; WM_MOVE
 		OnMessage(0x05, this._menuHide.bind("", _menuWindowHwnd)) ; WM_SIZE
@@ -199,7 +201,7 @@
 			this._onSize := ""
 			_fn := this._fnIf, _f := Func("WinActive")
 			Hotkey, If, % _fn
-				for _, _keyName in ["Up", "Down", "Tab", "!Left", "!Right"]
+				for _, _keyName in ["Up", "Down", "Tab", "!Left", "!Right", "Escape"]
 					Hotkey, % _keyName, % _f
 			Hotkey, If,
 		}
