@@ -99,6 +99,8 @@
 		for _option, _value in _options
 			this[_option] := _value
 
+		_GUI := A_DefaultGUI, _lastFoundWindow := WinExist()
+
 		_detectHiddenWindows := A_DetectHiddenWindows
 		DetectHiddenWindows, On
 		if not (WinExist("ahk_id " . _GUIID))
@@ -116,13 +118,13 @@
 			GuiControl +g, % _szHwnd, % _fn ; set the function object which handles the static control's events
 		}
 		; --------------------------------------------------------------------------------------------------------------------------------------------------------- menu
-		_GUI := A_DefaultGUI
 		GUI, New, +ToolWindow -Caption +Owner%_GUIID% +hwnd_menuWindowHwnd +E0x20 +LastFound
+		GUI, Color,, % this.menuBackgroundColor
+		GUI, Font, % this.menuFontOptions, this.menFontName
 		WinSet, Transparent, 255
-		GUI, %_GUI%:Default
 		this._menuWindow.AHKID := "ahk_id " . this._menuWindow.HWND:=_menuWindowHwnd
-		GUI % _menuWindowHwnd . ":Margin", 0, 0
-		GUI % _menuWindowHwnd . ":Add", ListBox, % this.menuOptions . " x0 y0 -HScroll Choose0 -Multi -Sort 0x100 hwnd_lbHwnd",
+		GUI, Margin, 0, 0
+		GUI, Add, ListBox, x0 y0 -HScroll +VScroll Choose0 -Multi -Sort 0x100 hwnd_lbHwnd,
 		SendMessage, 0x1A1, 0, 0,, % this.menu.AHKID:="ahk_id " . this.menu.HWND:=_lbHwnd ; LB_GETITEMHEIGHT
 		this._menuWindow._lbListHeight := ErrorLevel
 		_fn := this._endWord.bind(this, 1)
@@ -145,6 +147,9 @@
 		OnMessage(0x05, this._menuHide.bind("", _menuWindowHwnd)) ; WM_SIZE
 
 		this.disabled := this.disabled ; both the 'onEvent' and the 'onSize' properties must be set prior to set the 'disabled' one
+
+		GUI, %_GUI%:Default
+		WinExist(_lastFoundWindow)
 
 	}
 	addSource(_source, _list, _delimiter:="`n", _fileFullPath:="") {
