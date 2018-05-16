@@ -24,9 +24,11 @@ options :=
 		startAt: 2, ; the minimum number of characters a user must type before a search is performed
 		matchModeRegEx: true, ;  an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (.*)
 		appendHapax: true, ; hapax legomena will be appended to the current local word list
-		menuOptions: "-VScroll",
 		onSelect: "onSelectEventMonitor",
-		maxSuggestions: 7
+		maxSuggestions: 7,
+		menuBackgroundColor: "242bf4",
+		menuFontOptions: "cFFFFFF s14",
+		menuFontName: "Segoe UI"
 	}
 )
 A := new eAutocomplete(GUIID, options)
