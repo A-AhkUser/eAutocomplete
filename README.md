@@ -1,6 +1,6 @@
 ## eAutocomplete
 
-Enables users to quickly find and select from a dynamic pre-populated list of suggestions as they type in an AHK Edit control, leveraging searching and filtering.
+Enables users to quickly find and select from a dynamic pre-populated list of suggestions as they type in an AHK Edit control, leveraging typing, searching and/or filtering.
 
 ***
 
@@ -9,6 +9,14 @@ Enables users to quickly find and select from a dynamic pre-populated list of su
 </p>
 
 ***
+## Description, commands
+The script enables users, as typing in the Edit control, to quickly find and select from a dynamic pre-populated list of suggestions in order to expand partially entered strings into complete strings. When a user starts to type in the edit control, a listbox should display suggestions to complete the word, based both on earlier typed letters and the content of a [custom list](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods).
+
+* Use both the `Down` and `Up` arrow keys on your keyboard to select from the list of available suggestions.
+* Press the `TAB` key to select an item from the drop-down list.
+* Use both the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
+
+By default, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression, matching zero or more occurrences of any character (for example, ' **v**\***o** ' matches ' **v**olcan**o** '). As for *hapax legomena* they are by default appended to the current list, whether it is a variable or a file (see also: [options]()).
 
 ## How to
 First create a GUI and use the [+HwndGuiHwnd option](https://www.autohotkey.com/docs/commands/Gui.htm#GuiHwndOutputVar) to store the HWND of the window in `GuiHwnd`
@@ -69,6 +77,7 @@ A := new eAutocomplete(_GUIID, _options:="")
 ###### description:</br>
 > An object. If applicable, the following properties are processed:
 ##
+### Options
 *Keys that are marked with asterisk may at any time be modified after the control is created by setting the value of the respective property.
 Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.htm) to make a variety of changes to a control in a GUI window once it is created. `A.HWND` and `A.menu.HWND` contain respectively the edit control and the drop-down list control's HWND.*
 
@@ -83,9 +92,9 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 | ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current local word list. | `false`
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. | `""`
 | ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
-| ``menuBackgroundColor`` | Sets the background color of the menu. | `""`
-| ``menuFontName`` | Sets the font typeface for the menu. | `""`
-| ``menuFontOptions`` | Sets the size, style, and/or color for the menu. | `""`
+| ``menuBackgroundColor``* | Sets the background color of the menu. | `""`
+| ``menuFontName``* | Sets the font typeface for the menu. | `""`
+| ``menuFontOptions``* | Sets the size, style, and/or color for the menu. | `""`
 ##
 ## Available methods
 
@@ -156,3 +165,19 @@ The function can optionally accept the following parameters:</br>
 | parameters | description |
 |:-|:-|
 | ``_selection`` | Contains the text of the suggestion selected by the user. |
+##
+```AutoHotkey
+A.onSize := Func("mySizeEventMonitor")
+```
+##### description:
+Executes a custom function when the user resizes the edit control (note: the control must have +Resize listed in `editOptions` to allow resizing by the user).
+The function can optionally accept the following parameters:</br>
+``mySizeEventMonitor(_parent, this, _w, _h, _mousex, _mousey)``
+
+| parameters | description |
+|:-|:-|
+| ``_parent`` | The name, number or HWND of the GUI itself. |
+| ``_w`` | The current edit control's width. |
+| ``_h`` | The current edit control's height. |
+| ``_mousex`` |  The current position (abscissa) of the mouse cursor. |
+| ``_mousey`` | The current position (ordinate) of the mouse cursor. |
