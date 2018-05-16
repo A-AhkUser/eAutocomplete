@@ -5,7 +5,7 @@ Enables users to quickly find and select from a dynamic pre-populated list of su
 ***
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/A-AhkUser/AHK-forums/master/eAutocomplete/eAutocomplete.png" />
+  <img src="https://raw.githubusercontent.com/A-AhkUser/AHK-forums/master/eAutocomplete/eAutocomplete.gif" />
 </p>
 
 ***
@@ -17,9 +17,6 @@ First create a GUI and use the [+HwndGuiHwnd option](https://www.autohotkey.com/
 ```Autohotkey
 #NoEnv
 #SingleInstance force
-SetWorkingDir % A_ScriptDir
-SendMode, Input
-CoordMode, ToolTip, Screen
 #Warn
 ; Windows 8.1 64 bit - Autohotkey v1.1.28.00 32-bit Unicode
 
@@ -37,23 +34,24 @@ acerbe
 achat
 acheter
 )
+englishWords := "door*rain*car*window*time*house*sun"
 GUI, +Resize +hwndGUIID ; +hwndGUIID stores the window handle (HWND) of the GUI in 'GUIID'
 GUI, Font, s14, Segoe UI
 GUI, Color, White, White
 options :=
 (LTrim Join C
 	{
-		editOptions: "x11 y11 w300 h65 +Resize", ; sets the edit control's options; the 'Resize' option may be listed to allow the user to resize both the height and width of the edit control
-		menuOptions: "VScroll r10",
+		editOptions: "Section x11 y11 w300 h65 +Resize", ; sets the edit control's options; the 'Resize' option may be listed to allow the user to resize both the height and width of the edit control
 		startAt: 2, ; the minimum number of characters a user must type before a search is performed
 		matchModeRegEx: true, ;  an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (.*)
-		appendHapax: true ; hapax legomena will be appended to the current local word list
+		appendHapax: true, ; hapax legomena will be appended to the current local word list
+		maxSuggestions: 5
 	}
 )
 A := new eAutocomplete(GUIID, options)
-GUIDelimiter := "`n"
-GUI, +Delimiter%GUIDelimiter% ; important
-A.addSource("frenchWords", frenchWords, GUIDelimiter)
+A.addSource("frenchWords", frenchWords, "`n")
+A.addSource("englishWords", englishWords, "*")
+; A.setSource("englishWords") ; defines the word list to use
 A.setSource("frenchWords") ; defines the word list to use
 GUI, Show, w400 h330, eAutocomplete
 return
@@ -85,7 +83,7 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 | ``matchModeRegEx``* | If set to `true`, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (`.*` dot-star pattern). | `true`
 | ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current local word list. | `false`
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. | `""`
-| ``useTab``* | If the value evaluates to `true`, users can use the TAB key to select an item from the drop-down list. | `false`
+| ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
 ##
 ## Available methods
 
@@ -149,7 +147,7 @@ The function can optionally accept the following parameters:</br>
 A.onSelect := Func("mySelectEventMonitor")
 ```
 ##### description:
-Executes a custom function when the user selects a suggestion from the drop-down list (by pressing `Enter`).
+Executes a custom function when the user selects a suggestion from the drop-down list (by pressing `Tab`).
 The function can optionally accept the following parameters:</br>
 ``mySelectEventMonitor(this, _selection)``
 
