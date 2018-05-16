@@ -75,7 +75,6 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 | key | description | default value
 | :---: | :---: | :---: |
 | ``editOptions`` | Set the edit control's options. The `+Resize` option may be listed in ``options`` to allow the user to resize both the height and width of the edit control. *note: The edit control comes with the `ES_MULTILINE` style - which designates a multiline edit control - regardless of whether the `+Multi` is listed in options. It is coerced due to a internal limitation.* | `"w150 h35 Multi"`
-| ``menuOptions`` | Set the menu control's options. | `"-VScroll r7"`
 | ``onEvent``* | Associate a function object with the edit control. The value can be either the name of a function or a function reference. | `""`
 | ``disabled``* | Determine whether or not the word completion feature should start off in an initially-disabled state. | `false`
 | ``delimiter``* | Specify the delimiter used by the word list used as source for the word completion. | `` "`n" ``
@@ -84,6 +83,9 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 | ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current local word list. | `false`
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. | `""`
 | ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
+| ``menuBackgroundColor`` | Sets the background color of the menu. | `""`
+| ``menuFontName`` | Sets the font typeface for the menu. | `""`
+| ``menuFontOptions`` | Sets the size, style, and/or color for the menu. | `""`
 ##
 ## Available methods
 
