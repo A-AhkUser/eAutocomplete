@@ -58,6 +58,7 @@
 		return this._startAt
 		}
 	}
+	appendHapax := false
 	matchModeRegEx := true
 	onEvent {
 		set {
