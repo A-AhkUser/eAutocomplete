@@ -26,7 +26,9 @@
 	static sources := {"Default": {list: "", path: "", delimiter: "`n", _delimiter: "\n"}}
 
 	editOptions := "w150 h35 Multi",
-	menuOptions := "",
+	menuBackgroundColor := ""
+	menuFontName := ""
+	menuFontOptions := ""
 	HWND := ""
 	AHKID := ""
 	menu := {HWND: "", AHKID: "", _selectedItem: "", _selectedItemIndex: 0, _count: 0}
