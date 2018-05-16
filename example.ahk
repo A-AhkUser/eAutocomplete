@@ -21,26 +21,22 @@ options :=
 		editOptions: "x11 y11 w300 h65 +Resize", ; sets the edit control's options; the 'Resize' option may be listed to allow the user to resize both the height and width of the edit control
 		onSize: "onSizeEventMonitor",
 		onEvent: "onEventMonitor", ; sets a function object to handle the edit control's events
-		onSelect: "onSelectEventMonitor",
-		useTab: false,
-		menuOptions: "VScroll r10",
 		startAt: 2, ; the minimum number of characters a user must type before a search is performed
 		matchModeRegEx: true, ;  an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (.*)
-		appendHapax: true ; hapax legomena will be appended to the current local word list
+		appendHapax: true, ; hapax legomena will be appended to the current local word list
+		menuOptions: "-VScroll",
+		onSelect: "onSelectEventMonitor",
+		maxSuggestions: 7
 	}
 )
 A := new eAutocomplete(GUIID, options)
-; GUIDelimiter := "`n"
-; GUI, +Delimiter%GUIDelimiter% ; important
-; A.addSourceFromFile("englishWordList", listPath, GUIDelimiter)
-; A.setSource("englishWordList")
-GUIDelimiter := "|"
-GUI, +Delimiter%GUIDelimiter% ; important
-A.addSource("frenchWords", frenchWords, GUIDelimiter)
-A.setSource("frenchWords") ; defines the word list to use
-A.setDimensions(minWidth:=120, minHeight:=55)
+A.addSourceFromFile("englishWordList", listPath, "`n")
+A.setSource("englishWordList")
+A.addSource("frenchWords", frenchWords, "|")
+; A.setSource("frenchWords") ; defines the word list to use
+A.setDimensions(120, 55, 420, 300)
 A.onSize := Func("onSizeEventMonitor")
-GUI, Show, w400 h330, eAutocomplete
+GUI, Show, w442 h322, eAutocomplete
 OnExit, handleExit
 return
 
@@ -50,13 +46,16 @@ ExitApp
 
 !a::A.appendHapax:=!A.appendHapax
 !d::A.disabled:=!A.disabled
+!p::A.startAt++
 !m::A.matchModeRegEx:=!A.matchModeRegEx
+!g::A.maxSuggestions++
+!s::A.setSource("frenchWords")
 !i::
-MsgBox % A.onEvent.name
-MsgBox % A.onSize.name
-MsgBox % A.sources.frenchWords.list
-MsgBox % A.HWND
-MsgBox % A.menu.HWND
+	MsgBox % A.onEvent.name
+	MsgBox % A.onSelect.name
+	MsgBox % A.sources.frenchWords.list
+	MsgBox % A.HWND
+	MsgBox % A.menu.HWND
 return
 onEventMonitor(_autocomplete, _eHwnd, _input) {
 ToolTip % _autocomplete.HWND+0 "," _eHwnd "," _input
