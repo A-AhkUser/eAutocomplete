@@ -16,7 +16,7 @@ The script enables users, as typing in the Edit control, to quickly find and sel
 * Press the `TAB` key to select an item from the drop-down list.
 * Use both the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
 
-By default, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression, matching zero or more occurrences of any character (for example, ' **v**\***o** ' matches ' **v**olcan**o** '). As for *hapax legomena* they are by default appended to the current list, whether it is a variable or a file (see also: [options]()).
+By default, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression, matching zero or more occurrences of any character (for example, ' **v**\***o** ' matches ' **v**olcan**o** '). As for *hapax legomena* they are by default appended to the current list, whether it is a variable or a file (see also: [options](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options)).
 
 ## How to
 First create a GUI and use the [+HwndGuiHwnd option](https://www.autohotkey.com/docs/commands/Gui.htm#GuiHwndOutputVar) to store the HWND of the window in `GuiHwnd`
@@ -84,13 +84,13 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 | key | description | default value
 | :---: | :---: | :---: |
 | ``editOptions`` | Set the edit control's options. The `+Resize` option may be listed in ``options`` to allow the user to resize both the height and width of the edit control. *note: The edit control comes with the `ES_MULTILINE` style - which designates a multiline edit control - regardless of whether the `+Multi` is listed in options. It is coerced due to a internal limitation.* | `"w150 h35 Multi"`
-| ``onEvent``* | Associate a function object with the edit control. The value can be either the name of a function or a function reference. | `""`
+| ``onEvent``* | Associate a function object with the edit control. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``disabled``* | Determine whether or not the word completion feature should start off in an initially-disabled state. | `false`
 | ``delimiter``* | Specify the delimiter used by the word list used as source for the word completion. | `` "`n" ``
 | ``startAt``* | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2`
 | ``matchModeRegEx``* | If set to `true`, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (`.*` dot-star pattern). | `true`
 | ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current local word list. | `false`
-| ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. | `""`
+| ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
 | ``menuBackgroundColor``* | Sets the background color of the menu. | `""`
 | ``menuFontName``* | Sets the font typeface for the menu. | `""`
