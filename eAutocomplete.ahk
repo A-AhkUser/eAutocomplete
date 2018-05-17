@@ -7,9 +7,9 @@
 	; ===============================================================================================================
 	; ============================ PRIVATE PROPERTIES /===================================================
 	; ===============================================================================================================
-	_parent := "0x0"
-	_szHwnd := "0x0"
-	_fnIf := ""
+	_parent := "0x0" ; intended to contain the HWND of the GUI itself
+	_szHwnd := "0x0" ; intended to contain when necessary the HWND of static control which allows users to resize the edit control
+	_fnIf := "" ; intended to contain the function object with which are associated instance's hotkeys
 
 	_source := "Default"
 	_startAt := 2
@@ -29,7 +29,7 @@
 				_fn := this._suggestWordList.bind(this)
 				GuiControl +g, % this.HWND, % _fn ; set the function object which handles the edit control's events
 				_fn := this._endWord.bind(this, 1)
-				GuiControl +g, % this.menu.HWND, % _fn ; set the function object which handles the combobox control's events
+				GuiControl +g, % this.menu.HWND, % _fn ; set the function object which handles the menu (listbox) control's events
 			} else {
 				GuiControl -g, % this.menu.HWND, ; removes the function object bound to the control
 				GuiControl -g, % this.HWND,
@@ -73,7 +73,7 @@
 	; ===============================================================================================================
 	__New(_GUIID, _opt:="") {
 
-		_GUI := A_DefaultGUI, _lastFoundWindow := WinExist()
+		_GUI := A_DefaultGUI, _lastFoundWindow := WinExist() ; get both the default and the 'last found' GUI windows in order to restore them later
 		_detectHiddenWindows := A_DetectHiddenWindows
 		DetectHiddenWindows, On
 		if not (WinExist("ahk_id " . _GUIID)) {
@@ -91,9 +91,9 @@
 			(_opt.hasKey("startAt") && this.startAt:=_opt.startAt)
 		} else _opt:={}
 
-		GUI, % (this._parent:=_GUIID) . ":Add", Edit, % _opt.editOptions . " hwnd_eHwnd +Multi",
+		GUI, % (this._parent:=_GUIID) . ":Add", Edit, % _opt.editOptions . " hwnd_eHwnd +Multi", ; +Multi is coerced
 		this.AHKID := "ahk_id " . (this.HWND:=_eHwnd)
-		RegExMatch(_opt.editOptions, "Pi)(^|\s)\K\+?[^-]?Resize(?=\s|$)", _resize) ; matchs if the 'Resize' option is specified
+		RegExMatch(_opt.editOptions, "Pi)(^|\s)\K\+?[^-]?Resize(?=\s|$)", _resize) ; matchs if the '(+)Resize' option is specified
 		if (_resize) {
 			GuiControlGet, _pos, Pos, % _eHwnd
 			GUI, % _GUIID . ":Add", Text, % "0x12 w11 h11 " . Format("x{1} y{2}", _posx + _posw - 7, _posy + _posh - 7) . " hwnd_szHwnd"
@@ -109,18 +109,23 @@
 		_menuParentHwnd := _menu._parent.HWND
 		OnMessage(0x03, _menu._hide.bind("", _menuParentHwnd)) ; WM_MOVE
 		OnMessage(0x05, _menu._hide.bind("", _menuParentHwnd)) ; WM_SIZE
+		; hides the menu if the user moves or resize the window
+
 		_fn := this._fnIf := this._hotkeysShouldFire.bind("", "ahk_id " . _GUIID, _menuParentHwnd)
+		; once passed to the Hotkey command, an object is never deleted, hence the empty string
 		Hotkey, If, % _fn
 			_fn1 := _menu._setSelection.bind(_menu, -1), _fn2 := _menu._setSelection.bind(_menu, +1)
 			Hotkey, Up, % _fn1
 			Hotkey, Down, % _fn2
+			; use both the Down and Up arrow keys to select from the list of available suggestions
 			_fn1 := _menu._setPsSz.bind(_menu, -1), _fn2 := _menu._setPsSz.bind(_menu, 1)
 			Hotkey, !Left, % _fn1
 			Hotkey, !Right, % _fn2
+			; use both the Alt+Left and Alt+Right keyboard shortcuts to respectively shrink/expand the menu
 			_fn := this._autocomplete.bind(this)
-			Hotkey, Tab, % _fn
+			Hotkey, Tab, % _fn ; press the TAB key to select an item from the drop-down list
 			_fn := _menu._reset.bind(_menu)
-			Hotkey, Escape, % _fn
+			Hotkey, Escape, % _fn ; the drop-down list can be closed by pressing the ESC key
 		Hotkey, If,
 
 		this.setSource("Default")
@@ -176,7 +181,7 @@
 		_minSz := this._minSize, ((_minW+0 <> "") && _minSz.w:=Abs(_minW)), ((_minH+0 <> "") && _minSz.h:=Abs(_minH))
 		_maxSz := this._maxSize, ((_maxW+0 <> "") && _maxSz.w:=Abs(_maxW)), ((_maxH+0 <> "") && _maxSz.h:=Abs(_maxH))
 		}
-		dispose() {
+		dispose() { ; only useful if a __Delete meta-function is defined
 			this.disabled := true
 			this._onEvent := ""
 			this.menu._onSelect := ""
@@ -232,7 +237,7 @@
 						if (InStr(_m, "*") && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) {
 							_match := RegExReplace(_str
 							, "`ni)" . _d . "(?!\Q" . _parts.1 . "\E[^" . _d . "]+\Q" . _parts.2 . "\E).+?(?=" . _d . ")")
-							; I am particularly indebted to AlphaBravo for this regex
+							; remove all irreleavant lines from the subsection of the dictionary. I am particularly indebted to AlphaBravo for this regex
 						} else {
 							_m := "\Q" . _m . "\E"
 							RegExMatch(_str, "`nsi)" . _d . _m . "[^" . _d . "]+(.*" . _d . _m . ".+?(?=" . _d . "))?", _match)
@@ -257,15 +262,16 @@
 			return
 		ControlGetText, _input,, % _ahkid := this.AHKID
 		_caretPos := this._getSelection(), _leftSide := SubStr(_input, 1, _caretPos), _rightSide := SubStr(_input, _caretPos + 1)
-		_pos := RegExMatch(_leftSide, "P)\S+$", _length)
+		_pos := RegExMatch(_leftSide, "P)\S+$", _length) ; matches the last entered word starting from the left-hand side of the caret/insert current position
 		StringTrimRight, _leftSide, % _leftSide, % _length ; arabic alphabets should also be considered (StringTrimLeft?)
-		ControlSetText,, % _leftSide . _item . _rightSide, % _ahkid
+		ControlSetText,, % _leftSide . _item . _rightSide, % _ahkid ; inserts the selected item in the string
 		SendMessage, 0xB1, % _pos + 1, % _caretPos + StrLen(_item) - _length,, % _ahkid ; EM_SETSEL
 		this.menu._setPsSz()
 
 	}
 	_autocomplete() {
 	SendMessage, 0xB1, -1,,, % this.AHKID ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
+	;  If the start is –1, any current selection is deselected
 	GUI % this.menu._parent.HWND . ":Show", Hide
 	ControlSend,, {Space}, % this.AHKID
 	if (this.menu._selectedItemIndex)
@@ -277,7 +283,7 @@
 		if (_source.hasKey(_letter))
 			_source.list := StrReplace(_source.list, Trim(_source[_letter], _delimiter), "")
 		else _source[_letter] := _delimiter
-		_v := _source[_letter] . _value . _delimiter
+		_v := _source[_letter] . _value . _delimiter ; append the hapax legomenon to the dictionary's subsection
 		Sort, _v, D%_delimiter% U
 		_source.list .= (_source[_letter]:=_v), _source.list := LTrim(_source.list, _delimiter)
 		if (_source.path <> "") {
@@ -323,13 +329,14 @@
 				this._owner := _owner
 				this._selectedItem := "", this._selectedItemIndex := 0 := this._lbCount := 0
 				this.maxSuggestions := _maxSuggestions
-				GUI, New, % "+ToolWindow -Caption +hwnd_menuParentHwnd +E0x20 +LastFound +Owner" . _owner._parent
+				GUI, New, % "+ToolWindow -Caption +hwnd_menuParentHwnd +E0x20 +LastFound +Owner" . _owner._parent ; WS_EX_NOACTIVATE
 				GUI, Color,, % _bkColor
 				GUI, Font, % _ftOptions, % _ftName
-				WinSet, Transparent, 255
+				WinSet, Transparent, 255 ; in order to actually apply the +E0x20 extended style
 				(this._parent:={}).HWND := _menuParentHwnd
 				GUI, Margin, 0, 0
 				GUI, Add, ListBox, x0 y0 -HScroll +VScroll Choose0 -Multi -Sort 0x100 hwnd_lbHwnd,
+				; LBS_NOINTEGRALHEIGHT - specifies that the list box will be exactly the size specified by the application when it created the list box
 				SendMessage, 0x1A1, 0, 0,, % this.AHKID := "ahk_id " . (this.HWND:=_lbHwnd) ; LB_GETITEMHEIGHT
 				this._lbListHeight := ErrorLevel
 				_fn := this._owner._endWord.bind(this._owner, 1)
@@ -362,12 +369,14 @@
 					GuiControl, Move, % _mHwnd, % "w" . _posw + _w * 10
 				}
 				_coordModeCaret := A_CoordModeCaret
-					CoordMode, Caret, Screen
-					if not ((A_CaretX+0 <> "") && (A_CaretY+0 <> ""))
-						return
+				CoordMode, Caret, Screen
+					if not ((A_CaretX+0 <> "") && (A_CaretY+0 <> "")) {
+						CoordMode, Caret, % _coordModeCaret
+					return
+					}
 					_x := A_CaretX + 220, _y := A_CaretY + 235
-					_x := (_x > A_ScreenWidth) ? A_ScreenWidth - 220 : A_CaretX + 20 ; /MonitorWorkArea
-					_y :=(_y > A_ScreenHeight) ? A_ScreenHeight - 235 : A_CaretY + 35 ; /MonitorWorkArea
+					_x := (_x > A_ScreenWidth) ? A_ScreenWidth - 220 : A_CaretX + 20 ; /todo: use MonitorWorkArea instead
+					_y :=(_y > A_ScreenHeight) ? A_ScreenHeight - 235 : A_CaretY + 35 ; /todo: use MonitorWorkArea instead
 					(((_count:=this._lbCount) > this.maxSuggestions) && _count:=this.maxSuggestions)
 					GuiControl, Move, % _mHwnd, % " h" . ++_count * this._lbListHeight
 					GUI % this._parent.HWND . ":Show", % "NA AutoSize" . Format("x{1} y{2}", _x, _y)
