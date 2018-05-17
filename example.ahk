@@ -50,11 +50,11 @@ ExitApp
 !d::A.disabled:=!A.disabled
 !p::A.startAt++
 !m::A.matchModeRegEx:=!A.matchModeRegEx
-!g::A.maxSuggestions++
+!g::A.menu.maxSuggestions++
 !s::A.setSource("frenchWords")
 !i::
 	MsgBox % A.onEvent.name
-	MsgBox % A.onSelect.name
+	MsgBox % A.menu.onSelect.name
 	MsgBox % A.sources.frenchWords.list
 	MsgBox % A.HWND
 	MsgBox % A.menu.HWND
