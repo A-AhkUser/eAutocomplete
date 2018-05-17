@@ -9,30 +9,21 @@
 	; ===============================================================================================================
 	_parent := "0x0"
 	_szHwnd := "0x0"
-	_menuWindow := {HWND: "0x0", AHKID: "", _lbListHeight: ""}
 	_fnIf := ""
 
-	_enabled := true
 	_source := "Default"
+	_delimiter := "`n"
 	_startAt := 2
 	_onEvent := ""
-	_onSelect := ""
 	_onSize := ""
+	_minSize := {w: 51, h: 21}
+	_maxSize := {w: A_ScreenWidth, h: A_ScreenHeight}
 	; ===============================================================================================================
 	; ============================/ PRIVATE PROPERTIES ===================================================
 	; ===============================================================================================================
 	; ============================ PUBLIC PROPERTIES /=====================================================
 	; ===============================================================================================================
 	static sources := {"Default": {list: "", path: "", delimiter: "`n", _delimiter: "\n"}}
-
-	editOptions := "w150 h35 Multi",
-	menuBackgroundColor := ""
-	menuFontName := ""
-	menuFontOptions := ""
-	HWND := ""
-	AHKID := ""
-	menu := {HWND: "", AHKID: "", _selectedItem: "", _selectedItemIndex: 0, _count: 0}
-
 	disabled {
 		set {
 			if (this._enabled:=!value) {
@@ -50,6 +41,14 @@
 		return !this._enabled
 		}
 	}
+	delimiter {
+		set {
+		return this._delimiter := (StrLen(value) = 1) ? value : this._delimiter
+		}
+		get {
+		return this._delimiter
+		}
+	}
 	startAt {
 		set {
 		return this._startAt := (value > 0) ? value : this._startAt
@@ -58,32 +57,18 @@
 		return this._startAt
 		}
 	}
-	appendHapax := false
-	matchModeRegEx := true
 	onEvent {
 		set {
-			this._setCallback("_onEvent", value)
+			this._setCallback(this, "_onEvent", value)
 		return this._onEvent
 		}
 		get {
 		return this._onEvent
 		}
 	}
-	maxSuggestions := 7
-	onSelect {
-		set {
-			this._setCallback("_onSelect", value)
-		return this._onSelect
-		}
-		get {
-		return this._onSelect
-		}
-	}
-	_minSize := {w: 51, h: 21}
-	_maxSize := {w: A_ScreenWidth, h: A_ScreenHeight}
 	onSize {
 		set {
-			this._setCallback("_onSize", value)
+			this._setCallback(this, "_onSize", value)
 		return this._onSize
 		}
 		get {
@@ -95,24 +80,30 @@
 	; ===============================================================================================================
 	; ============================ PUBLIC METHODS /=====================================================
 	; ===============================================================================================================
-	__New(_GUIID, _options:="") {
-
-		(IsObject(_options) || _options:={})
-		_options.remove("disabled")
-		for _option, _value in _options
-			this[_option] := _value
+	__New(_GUIID, _opt:="") {
 
 		_GUI := A_DefaultGUI, _lastFoundWindow := WinExist()
-
 		_detectHiddenWindows := A_DetectHiddenWindows
 		DetectHiddenWindows, On
-		if not (WinExist("ahk_id " . _GUIID))
-			return !ErrorLevel:=1
+		if not (WinExist("ahk_id " . _GUIID)) {
+			GUI, %_GUI%:Default
+			WinExist(_lastFoundWindow)
+		return !ErrorLevel:=1
+		}
 		DetectHiddenWindows % _detectHiddenWindows
-		; --------------------------------------------------------------------------------------------------------------------------------------------------------- edit control
-		GUI, % (this._parent:=_GUIID) . ":Add", Edit, % this.editOptions . " hwnd_eHwnd +Multi",
-		this.AHKID := "ahk_id " . this.HWND:=_eHwnd
-		RegExMatch(this.editOptions, "Pi)(^|\s)\K\+?[^-]?Resize(?=\s|$)", _resize) ; matchs if the 'Resize' option is specified
+
+		if (IsObject(_opt)) {
+			this.appendHapax := _opt.hasKey("appendHapax") ? !!_opt.appendHapax : false
+			this.matchModeRegEx := _opt.hasKey("matchModeRegEx") ? !!_opt.matchModeRegEx : true
+			(_opt.hasKey("delimiter") && this.delimiter:=_opt.delimiter)
+			(_opt.hasKey("onEvent") && this.onEvent:=_opt.onEvent)
+			(_opt.hasKey("onSize") && this.onSize:=_opt.onSize)
+			(_opt.hasKey("startAt") && this.startAt:=_opt.startAt)
+		} else _opt:={}
+
+		GUI, % (this._parent:=_GUIID) . ":Add", Edit, % _opt.editOptions . " hwnd_eHwnd +Multi",
+		this.AHKID := "ahk_id " . (this.HWND:=_eHwnd)
+		RegExMatch(_opt.editOptions, "Pi)(^|\s)\K\+?[^-]?Resize(?=\s|$)", _resize) ; matchs if the 'Resize' option is specified
 		if (_resize) {
 			GuiControlGet, _pos, Pos, % _eHwnd
 			GUI, % _GUIID . ":Add", Text, % "0x12 w11 h11 " . Format("x{1} y{2}", _posx + _posw - 7, _posy + _posh - 7) . " hwnd_szHwnd"
@@ -120,36 +111,29 @@
 			this._szHwnd := _szHwnd, _fn := this.__resize.bind(this)
 			GuiControl +g, % _szHwnd, % _fn ; set the function object which handles the static control's events
 		}
-		; --------------------------------------------------------------------------------------------------------------------------------------------------------- menu
-		GUI, New, +ToolWindow -Caption +Owner%_GUIID% +hwnd_menuWindowHwnd +E0x20 +LastFound
-		GUI, Color,, % this.menuBackgroundColor
-		GUI, Font, % this.menuFontOptions, this.menFontName
-		WinSet, Transparent, 255
-		this._menuWindow.AHKID := "ahk_id " . this._menuWindow.HWND:=_menuWindowHwnd
-		GUI, Margin, 0, 0
-		GUI, Add, ListBox, x0 y0 -HScroll +VScroll Choose0 -Multi -Sort 0x100 hwnd_lbHwnd,
-		SendMessage, 0x1A1, 0, 0,, % this.menu.AHKID:="ahk_id " . this.menu.HWND:=_lbHwnd ; LB_GETITEMHEIGHT
-		this._menuWindow._lbListHeight := ErrorLevel
-		_fn := this._endWord.bind(this, 1)
-		GuiControl +g, % _lbHwnd, % _fn ; set the function object which handles the combobox control's events
-		; --------------------------------------------------------------------------------------------------------------------------------------------------------- hotkeys
-		_fn := this._fnIf := this._hotkeysShouldFire.bind("", "ahk_id " . _GUIID, _menuWindowHwnd)
+		_menu
+		:= this.menu
+		:= new eAutocomplete.Menu(this,_opt.maxSuggestions,_opt.menuBackgroundColor,_opt.menuFontName,_opt.menuFontOptions)
+		(_opt.hasKey("onSelect") && _menu.onSelect:=_opt.onSelect)
+
+		_menuParentHwnd := _menu._parent.HWND
+		OnMessage(0x03, _menu._hide.bind("", _menuParentHwnd)) ; WM_MOVE
+		OnMessage(0x05, _menu._hide.bind("", _menuParentHwnd)) ; WM_SIZE
+		_fn := this._fnIf := this._hotkeysShouldFire.bind("", "ahk_id " . _GUIID, _menuParentHwnd)
 		Hotkey, If, % _fn
-			_fn1 := this._menuSetSelection.bind(this, -1), _fn2 := this._menuSetSelection.bind(this, +1)
+			_fn1 := _menu._setSelection.bind(_menu, -1), _fn2 := _menu._setSelection.bind(_menu, +1)
 			Hotkey, Up, % _fn1
 			Hotkey, Down, % _fn2
-			_fn1 := this._menuSetPsSz.bind(this, -1), _fn2 := this._menuSetPsSz.bind(this, 1)
+			_fn1 := _menu._setPsSz.bind(_menu, -1), _fn2 := _menu._setPsSz.bind(_menu, 1)
 			Hotkey, !Left, % _fn1
 			Hotkey, !Right, % _fn2
-			_fn := this._autocomplete.bind(this, this.AHKID)
+			_fn := this._autocomplete.bind(this)
 			Hotkey, Tab, % _fn
-			_fn := this._menuReset.bind(this)
+			_fn := _menu._reset.bind(_menu)
 			Hotkey, Escape, % _fn
 		Hotkey, If,
-		OnMessage(0x03, this._menuHide.bind("", _menuWindowHwnd)) ; WM_MOVE
-		OnMessage(0x05, this._menuHide.bind("", _menuWindowHwnd)) ; WM_SIZE
 
-		this.disabled := this.disabled ; both the 'onEvent' and the 'onSize' properties must be set prior to set the 'disabled' one
+		this.disabled := _opt.hasKey("disabled") ? !!_opt.disabled : false ; both the 'onEvent' and the 'onSize' properties must be set prior to set the 'disabled' one
 
 		GUI, %_GUI%:Default
 		WinExist(_lastFoundWindow)
@@ -189,21 +173,21 @@
 	}
 	setSource(_source) {
 		if (eAutocomplete.sources.hasKey(_source)) {
-			GUI, % this._menuWindow.HWND . ":+Delimiter" . this.sources[_source].delimiter
-			this._menuReset()
-			GuiControl,, % this.HWND,
+			GUI, % this.menu._parent.HWND . ":+Delimiter" . this.sources[_source].delimiter
+			this.menu._reset()
+			; GuiControl,, % this.HWND,
 		return !ErrorLevel:=0, this._source := _source
 		}
 		return !ErrorLevel:=1
 	}
-		setDimensions(_minW:="", _minH:="", _maxW:="", _maxH:="") {
+		setDimensions(_minW:="", _minH:="", _maxW:="", _maxH:="") { ; + min < max
 		_minSz := this._minSize, ((_minW+0 <> "") && _minSz.w:=Abs(_minW)), ((_minH+0 <> "") && _minSz.h:=Abs(_minH))
 		_maxSz := this._maxSize, ((_maxW+0 <> "") && _maxSz.w:=Abs(_maxW)), ((_maxH+0 <> "") && _maxSz.h:=Abs(_maxH))
 		}
 		dispose() {
 			this.disabled := true
 			this._onEvent := ""
-			this._onSelect := ""
+			this.menu._onSelect := ""
 			if (this.hasKey("_szHwnd"))
 				GuiControl -g, % this._szHwnd ; removes the function object bound to the control
 			this._onSize := ""
@@ -218,39 +202,20 @@
 	; ===============================================================================================================
 	; ============================ PRIVATE METHODS /=====================================================
 	; ===============================================================================================================
-	_setCallback(_eventName, _fn) {
+	_setCallback(_source, _eventName, _fn) {
 	if not (IsFunc(_fn))
 		return !ErrorLevel:=1
 		((_fn.minParams = "") && _fn:=Func(_fn)) ; handles function references as well as function names
-	return !ErrorLevel:=0, this[_eventName]:=_fn
+	return !ErrorLevel:=0, _source[_eventName]:=_fn
 	}
-	_hotkeysShouldFire(_ahkid, _menuWindowHwnd) {
-	return (DllCall("IsWindowVisible", "Ptr", _menuWindowHwnd) && WinActive(_ahkid))
+	_hotkeysShouldFire(_ahkid, _menuParentHwnd) {
+	return (DllCall("IsWindowVisible", "Ptr", _menuParentHwnd) && WinActive(_ahkid))
 	}
 	_getSelection(ByRef _startSel:="", ByRef _endSel:="") { ; cf. https://github.com/dufferzafar/Autohotkey-Scripts/blob/master/lib/Edit.ahk
 		VarSetCapacity(_startPos, 4, 0), VarSetCapacity(_endPos, 4, 0)
 		SendMessage 0xB0, &_startPos, &_endPos,, % this.AHKID ; EM_GETSEL
 		_startSel := NumGet(_startPos), _endSel := NumGet(_endPos)
 	return _endSel
-	}
-	_menuHide(_menuWindowHwnd) {
-	if (DllCall("IsWindowVisible", "Ptr", _menuWindowHwnd))
-		GUI % _menuWindowHwnd . ":Show", Hide
-	}
-	_menuSetSelection(_prm) {
-		_menu := this.menu, _count := _menu._count
-		if (_prm > 0) {
-			Control, Choose, % (_menu._selectedItemIndex >= _count)
-			? _menu._selectedItemIndex:=1 : ++_menu._selectedItemIndex,, % _menu.AHKID
-		} else Control, Choose, % (_menu._selectedItemIndex <= 1)
-			? (_menu._selectedItemIndex:=_count) : --_menu._selectedItemIndex,, % _menu.AHKID
-		this._endWord()
-	}
-	_menuReset() {
-	_menu := this.menu
-	SendMessage, 0x0184, 0, 0,, % _menu.AHKID ; LB_RESETCONTENT
-	_menu._selectedItem := "", _menu._count := _menu._selectedItemIndex := 0
-	GUI % this._menuWindow.HWND . ":Show", Hide
 	}
 	_suggestWordList(_eHwnd) {
 
@@ -286,30 +251,10 @@
 		; SendMessage, 0x18b, 0, 0,, % _menu.AHKID ; LB_GETCOUNT
 		StrReplace(_match, _source.delimiter,, _count)
 		if (LTrim(_match, _source.delimiter) <> "")
-			_menu._count := _count, _menu._selectedItem := "", _menu._selectedItemIndex := 0, this._menuSetPsSz()
-		else this._menuReset()
+			_menu._lbCount := _count, _menu._selectedItem := "", _menu._selectedItemIndex := 0, this.menu._setPsSz()
+		else this.menu._reset()
 
 		(this._onEvent && this._onEvent.call(this, _eHwnd, _input))
-
-	}
-	_menuSetPsSz(_w:=0) {
-
-		_mHwnd := this.menu.HWND
-		if (_w) {
-			GuiControlGet, _pos, Pos, % _mHwnd
-			GuiControl, Move, % _mHwnd, % "w" . _posw + _w * 10
-		}
-		_coordModeCaret := A_CoordModeCaret
-			CoordMode, Caret, Screen
-			if not ((A_CaretX+0 <> "") && (A_CaretY+0 <> ""))
-				return
-			_x := A_CaretX + 220, _y := A_CaretY + 235
-			_x := (_x > A_ScreenWidth) ? A_ScreenWidth - 220 : A_CaretX + 20 ; /MonitorWorkArea
-			_y :=(_y > A_ScreenHeight) ? A_ScreenHeight - 235 : A_CaretY + 35 ; /MonitorWorkArea
-			(((_count:=this.menu._count) > this.maxSuggestions) && _count:=this.maxSuggestions)
-			GuiControl, Move, % _mHwnd, % " h" . ++_count * this._menuWindow._lbListHeight
-			GUI % this._menuWindow.HWND . ":Show", % "NA AutoSize" . Format("x{1} y{2}", _x, _y)
-		CoordMode, Caret, % _coordModeCaret
 
 	}
 	_endWord(_param:=false) {
@@ -323,15 +268,15 @@
 		StringTrimRight, _leftSide, % _leftSide, % _length ; arabic alphabets should also be considered (StringTrimLeft?)
 		ControlSetText,, % _leftSide . _item . _rightSide, % _ahkid
 		SendMessage, 0xB1, % _pos + 1, % _caretPos + StrLen(_item) - _length,, % _ahkid ; EM_SETSEL
-		this._menuSetPsSz()
+		this.menu._setPsSz()
 
 	}
-	_autocomplete(_eAhkid) {
-	SendMessage, 0xB1, -1,,, % _eAhkid ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
-	GUI % this._menuWindow.HWND . ":Show", Hide
-	ControlSend,, {Space}, % _eAhkid
+	_autocomplete() {
+	SendMessage, 0xB1, -1,,, % this.AHKID ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
+	GUI % this.menu._parent.HWND . ":Show", Hide
+	ControlSend,, {Space}, % this.AHKID
 	if (this.menu._selectedItemIndex)
-		(this._onSelect && this._onSelect.call(this, this.menu._selectedItem))
+		((_fn:=this.menu._onSelect) && _fn.call(this, this.menu._selectedItem))
 	}
 	__hapax(_letter, _value) {
 
@@ -376,4 +321,75 @@
 	; ===============================================================================================================
 	; ============================/ PRIVATE METHODS =====================================================
 	; ===============================================================================================================
+
+		Class Menu {
+
+			__New(_owner, _maxSuggestions:=7, _bkColor:="", _ftName:="", _ftOptions:="") {
+
+				this._owner := _owner
+				this._selectedItem := "", this._selectedItemIndex := 0 := this._lbCount := 0
+				this.maxSuggestions := _maxSuggestions
+				GUI, New, % "+ToolWindow -Caption +hwnd_menuParentHwnd +E0x20 +LastFound +Owner" . _owner._parent
+				GUI, Color,, % _bkColor
+				GUI, Font, % _ftOptions, % _ftName
+				WinSet, Transparent, 255
+				(this._parent:={}).HWND := _menuParentHwnd
+				GUI, Margin, 0, 0
+				GUI, Add, ListBox, x0 y0 -HScroll +VScroll Choose0 -Multi -Sort 0x100 hwnd_lbHwnd,
+				SendMessage, 0x1A1, 0, 0,, % this.AHKID := "ahk_id " . (this.HWND:=_lbHwnd) ; LB_GETITEMHEIGHT
+				this._lbListHeight := ErrorLevel
+				_fn := this._owner._endWord.bind(this._owner, 1)
+				GuiControl +g, % _lbHwnd, % _fn ; set the function object which handles the combobox control's events
+
+			}
+			onSelect {
+				set {
+					this._owner._setCallback(this, "_onSelect", value)
+				return this._onSelect
+				}
+				get {
+				return this._onSelect
+				}
+			}
+			_setSelection(_prm) {
+				_count := this._lbCount
+				if (_prm > 0) {
+					Control, Choose, % (this._selectedItemIndex >= _count)
+					? this._selectedItemIndex:=1 : ++this._selectedItemIndex,, % this.AHKID
+				} else Control, Choose, % (this._selectedItemIndex <= 1)
+					? (this._selectedItemIndex:=_count) : --this._selectedItemIndex,, % this.AHKID
+				this._owner._endWord()
+			}
+			_setPsSz(_w:=0) {
+
+				_mHwnd := this.HWND
+				if (_w) {
+					GuiControlGet, _pos, Pos, % _mHwnd
+					GuiControl, Move, % _mHwnd, % "w" . _posw + _w * 10
+				}
+				_coordModeCaret := A_CoordModeCaret
+					CoordMode, Caret, Screen
+					if not ((A_CaretX+0 <> "") && (A_CaretY+0 <> ""))
+						return
+					_x := A_CaretX + 220, _y := A_CaretY + 235
+					_x := (_x > A_ScreenWidth) ? A_ScreenWidth - 220 : A_CaretX + 20 ; /MonitorWorkArea
+					_y :=(_y > A_ScreenHeight) ? A_ScreenHeight - 235 : A_CaretY + 35 ; /MonitorWorkArea
+					(((_count:=this._lbCount) > this.maxSuggestions) && _count:=this.maxSuggestions)
+					GuiControl, Move, % _mHwnd, % " h" . ++_count * this._lbListHeight
+					GUI % this._parent.HWND . ":Show", % "NA AutoSize" . Format("x{1} y{2}", _x, _y)
+				CoordMode, Caret, % _coordModeCaret
+
+			}
+			_hide(_menuParentHwnd) {
+			if (DllCall("IsWindowVisible", "Ptr", _menuParentHwnd))
+				GUI % _menuParentHwnd . ":Show", Hide
+			}
+			_reset() {
+			SendMessage, 0x0184, 0, 0,, % this.AHKID ; LB_RESETCONTENT
+			this._selectedItem := "", this._selectedItemIndex := this._lbCount := 0
+			GUI % this._parent.HWND . ":Show", Hide
+			}
+
+		}
+
 }
