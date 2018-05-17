@@ -12,7 +12,6 @@
 	_fnIf := ""
 
 	_source := "Default"
-	_delimiter := "`n"
 	_startAt := 2
 	_onEvent := ""
 	_onSize := ""
@@ -39,14 +38,6 @@
 		}
 		get {
 		return !this._enabled
-		}
-	}
-	delimiter {
-		set {
-		return this._delimiter := (StrLen(value) = 1) ? value : this._delimiter
-		}
-		get {
-		return this._delimiter
 		}
 	}
 	startAt {
@@ -95,7 +86,6 @@
 		if (IsObject(_opt)) {
 			this.appendHapax := _opt.hasKey("appendHapax") ? !!_opt.appendHapax : false
 			this.matchModeRegEx := _opt.hasKey("matchModeRegEx") ? !!_opt.matchModeRegEx : true
-			(_opt.hasKey("delimiter") && this.delimiter:=_opt.delimiter)
 			(_opt.hasKey("onEvent") && this.onEvent:=_opt.onEvent)
 			(_opt.hasKey("onSize") && this.onSize:=_opt.onSize)
 			(_opt.hasKey("startAt") && this.startAt:=_opt.startAt)
@@ -132,6 +122,8 @@
 			_fn := _menu._reset.bind(_menu)
 			Hotkey, Escape, % _fn
 		Hotkey, If,
+
+		this.setSource("Default")
 
 		this.disabled := _opt.hasKey("disabled") ? !!_opt.disabled : false ; both the 'onEvent' and the 'onSize' properties must be set prior to set the 'disabled' one
 
@@ -281,14 +273,15 @@
 	}
 	__hapax(_letter, _value) {
 
-		if ((_source:=eAutocomplete.sources[ this._source ]).hasKey(_letter))
-			_source.list := StrReplace(_source.list, Trim(_source[_letter], _delimiter:=_source.delimiter), "")
-		else _source[_letter] := ""
+		_source := eAutocomplete.sources[ this._source ], _delimiter:=_source.delimiter
+		if (_source.hasKey(_letter))
+			_source.list := StrReplace(_source.list, Trim(_source[_letter], _delimiter), "")
+		else _source[_letter] := _delimiter
 		_v := _source[_letter] . _value . _delimiter
 		Sort, _v, D%_delimiter% U
-		_source.list .= (_source[_letter]:=_v)
+		_source.list .= (_source[_letter]:=_v), _source.list := LTrim(_source.list, _delimiter)
 		if (_source.path <> "") {
-			(_f:=FileOpen(_source.path, 4+1, "UTF-8")).write(LTrim(_source.list, _delimiter)), _f.close() ; EOL: 4 > replace `n with `r`n when writing
+			(_f:=FileOpen(_source.path, 4+1, "UTF-8")).write(_source.list), _f.close() ; EOL: 4 > replace `n with `r`n when writing
 		}
 
 	}
