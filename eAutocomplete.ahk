@@ -86,6 +86,7 @@
 		if (IsObject(_opt)) {
 			this.appendHapax := _opt.hasKey("appendHapax") ? !!_opt.appendHapax : false
 			this.matchModeRegEx := _opt.hasKey("matchModeRegEx") ? !!_opt.matchModeRegEx : true
+			this.matchesLimit := _opt.hasKey("matchesLimit") ? Round(_opt.matchesLimit) : 1000
 			(_opt.hasKey("onEvent") && this.onEvent:=_opt.onEvent)
 			(_opt.hasKey("onSize") && this.onSize:=_opt.onSize)
 			(_opt.hasKey("startAt") && this.startAt:=_opt.startAt)
@@ -231,7 +232,7 @@
 						if not ((_m:=RTrim(_m, A_Space)) = _choice) ; if it is not suggested...
 							this.__hapax(SubStr(_m, 1, 1), _m) ; append it to the dictionary
 					}
-				} else if (_letter:=SubStr(_m, 1, 1)) {
+				} else if not (_w:=(_letter:=SubStr(_m, 1, 1)) = "*") {
 					if (_str:=_source[_letter]) {
 						_d := _source._delimiter
 						if (InStr(_m, "*") && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) {
@@ -243,15 +244,16 @@
 							RegExMatch(_str, "`nsi)" . _d . _m . "[^" . _d . "]+(.*" . _d . _m . ".+?(?=" . _d . "))?", _match)
 						}
 					}
+				} else if (_w && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) {
+					_d := _source._delimiter
+					_match := RegExReplace(_source.delimiter . _source.list, "`ni)" . _d . "(?![^" . _d . "]+\Q" . _parts.2 . "\E).+?(?=" . _d . ")")
 				}
 		}
-		GuiControl,, % _menu.HWND, % _match
-		; SendMessage, 0x18b, 0, 0,, % _menu.AHKID ; LB_GETCOUNT
 		StrReplace(_match, _source.delimiter,, _count)
-		if (LTrim(_match, _source.delimiter) <> "")
+		if ((_count <= this.matchesLimit) && (LTrim(_match, _source.delimiter) <> "")) {
+			GuiControl,, % _menu.HWND, % _match
 			_menu._lbCount := _count, _menu._selectedItem := "", _menu._selectedItemIndex := 0, this.menu._setPsSz()
-		else this.menu._reset()
-
+		} else this.menu._reset()
 		(this._onEvent && this._onEvent.call(this, _eHwnd, _input))
 
 	}
