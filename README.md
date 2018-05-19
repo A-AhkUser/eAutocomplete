@@ -2,6 +2,8 @@
 
 Enables users to quickly find and select from a dynamic pre-populated list of suggestions as they type in an AHK Edit control, leveraging typing, searching and/or filtering.
 
+> forum thread @[AutoHotkey.com](https://autohotkey.com/boards/viewtopic.php?f=6&t=48940)
+
 ***
 
 <p align="center">
@@ -66,9 +68,11 @@ GUI, Show, w400 h330, eAutocomplete
 return
 ```
 ##
+***
 ```Autohotkey
 A := new eAutocomplete(_GUIID, _options:="")
 ```
+***
 ##### parameters:
 . ``_GUIID`` [HWND]
 ###### description:
@@ -88,6 +92,7 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 | ``onEvent``* | Associate a function object with the edit control. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``disabled``* | Determine whether or not the word completion feature should start off in an initially-disabled state. | `false`
 | ``startAt``* | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2`
+| ``autoAppend``* |  If it evaluates to `true` - and presuming that the last word partially entered is not a regular expression - the first item in the drop-down list is pre-select/auto-append without the need to press any of the arrow keys. | `false`
 | ``matchModeRegEx``* | If set to `true`, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (`.*` dot-star pattern). | `true`
 | ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current local word list. | `false`
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
@@ -103,10 +108,11 @@ Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.
 * **addSourceFromFile**
 
 ###
-
+***
 ```AutoHotkey
 A.setSource(_source)
 ```
+***
 ##### description:
 Specifies the autocomplete list to use.
 
@@ -114,9 +120,11 @@ Specifies the autocomplete list to use.
 |:-|:-|
 | ``_source`` | The name of a source that was previously defined with ``addSource`` or ``addSourceFromFile``. |
 ##
+***
 ```AutoHotkey
 A.addSource(_source, _list, _delimiter:="`n")
 ```
+***
 ##### description:
 Creates a new autocomplete dictionary from an input string, storing it directly in the base object.
 
@@ -126,9 +134,11 @@ Creates a new autocomplete dictionary from an input string, storing it directly 
 | ``_list`` | The list as string. |
 | ``_delimiter`` [OPTIONAL] | The delimiter which seperates each item in the list. |
 ##
+***
 ```AutoHotkey
 A.addSourceFromFile(_source, _fileFullPath, _delimiter:="`n")
 ```
+***
 ##### description:
 Creates a new autocomplete dictionary from a file's content, storing it directly in the base object.
 
@@ -141,9 +151,11 @@ Creates a new autocomplete dictionary from a file's content, storing it directly
 ##
 ## Event handling
 
+***
 ```AutoHotkey
 A.onEvent := Func("myEventMonitor")
 ```
+***
 ##### description:
 Executes a custom function each time the user or the script itself changes the contents of the edit control.
 The function can optionally accept the following parameters:</br>
@@ -154,9 +166,11 @@ The function can optionally accept the following parameters:</br>
 | ``_eHwnd`` | Contains the edit control's HWND. |
 | ``_input`` | Contains the edit control's current content. |
 ##
+***
 ```AutoHotkey
 A.onSelect := Func("mySelectEventMonitor")
 ```
+***
 ##### description:
 Executes a custom function when the user selects a suggestion from the drop-down list (by pressing `Tab`).
 The function can optionally accept the following parameters:</br>
@@ -166,9 +180,11 @@ The function can optionally accept the following parameters:</br>
 |:-|:-|
 | ``_selection`` | Contains the text of the suggestion selected by the user. |
 ##
+***
 ```AutoHotkey
 A.onSize := Func("mySizeEventMonitor")
 ```
+***
 ##### description:
 Executes a custom function when the user resizes the edit control (note: the control must have +Resize listed in `editOptions` to allow resizing by the user).
 The function can optionally accept the following parameters:</br>
