@@ -11,11 +11,21 @@ Enables users to quickly find and select from a dynamic pre-populated list of su
 </p>
 
 ***
+## Table of Contents
+<ul>
+  <li><a href="#description-commands">Description, commands</a></li>
+  <li><a href="#how-to">How to</a></li>
+  <li><a href="#options">Options</a></li>
+  <li><a href="#available-methods">Available methods</a></li>
+  <li><a href="#event-handling">Event handling</a></li>
+  <li><a href="https://github.com/A-AhkUser/eAutocomplete/tree/attach"><i>Attach method [experimental]</i></a></li>
+</ul>
+
 ## Description, commands
 The script enables users, as typing in the Edit control, to quickly find and select from a dynamic pre-populated list of suggestions in order to expand partially entered strings into complete strings. When a user starts to type in the edit control, a listbox should display suggestions to complete the word, based both on earlier typed letters and the content of a [custom list](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods).
 
-* Use both the `Down` and `Up` arrow keys on your keyboard to select from the list of available suggestions.
-* Press the `TAB` key to select an item from the drop-down list.
+* Use both the `Down` and `Up` arrow keys (or alternatively `Tab` and `Shift+Tab`) to select from the list of available suggestions.
+* Press the `Right` key to send the selected item (or simply `Enter` if you also intend to move to the next line at the same time).
 * The drop-down list can be closed by pressing the `ESC` key.
 * Use both the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
 
