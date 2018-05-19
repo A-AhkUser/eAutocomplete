@@ -7,6 +7,7 @@
 	; ===============================================================================================================
 	; ============================ PRIVATE PROPERTIES /===================================================
 	; ===============================================================================================================
+	static _instances := []
 	_parent := "0x0" ; intended to contain the HWND of the GUI itself
 	_szHwnd := "0x0" ; intended to contain, when necessary, the HWND of the static control which allows users to resize the edit control
 	_fnIf := "" ; intended to contain the function object with which are associated instance's hotkeys
@@ -73,14 +74,28 @@
 	; ===============================================================================================================
 	; ============================ PUBLIC METHODS /=====================================================
 	; ===============================================================================================================
-	__New(_GUIID, _opt:="") {
+	__New(_GUIID, _opt:="", _eHwnd:="0x0") {
 
 		_GUI := A_DefaultGUI, _lastFoundWindow := WinExist() ; get both the default and the 'last found' GUI windows in order to restore them later
-		Gui %_GUIID%:+LastFoundExist
-		if not (WinExist()) {
+		_detectHiddenWindows := A_DetectHiddenWindows
+		DetectHiddenWindows, On
+		if not (WinExist("ahk_id " . this._parent:=_GUIID)) {
 			GUI, %_GUI%:Default
 			WinExist(_lastFoundWindow)
+			DetectHiddenWindows % _detectHiddenWindows
 		return !ErrorLevel:=1
+		}
+		DetectHiddenWindows % _detectHiddenWindows
+
+		GUI, % _GUIID . ":Add", Edit, % _opt.editOptions . " hwnd_eHwnd +Multi", ; +Multi is coerced due to an internal limitation
+		this.AHKID := "ahk_id " . (this.HWND:=_eHwnd)
+		RegExMatch(_opt.editOptions, "Pi)(^|\s)\K\+?[^-]?Resize(?=\s|$)", _resize) ; matchs if the '(+)Resize' option is specified
+		if (_resize) {
+			GuiControlGet, _pos, Pos, % _eHwnd
+			GUI, % _GUIID . ":Add", Text, % "0x12 w11 h11 " . Format("x{1} y{2}", _posx + _posw - 7, _posy + _posh - 7) . " hwnd_szHwnd"
+			; , % Chr(9698) ; https://unicode-table.com/fr/25E2/
+			this._szHwnd := _szHwnd, _fn := this.__resize.bind(this)
+			GuiControl +g, % _szHwnd, % _fn ; set the function object which handles the static control's events
 		}
 		if (IsObject(_opt)) {
 			this.autoAppend := _opt.hasKey("autoAppend") ? !!_opt.autoAppend : false
@@ -91,16 +106,6 @@
 			(_opt.hasKey("onSize") && this.onSize:=_opt.onSize)
 		} else _opt:={}
 
-		GUI, % (this._parent:=_GUIID) . ":Add", Edit, % _opt.editOptions . " hwnd_eHwnd +Multi", ; +Multi is coerced due to an internal limitation
-		this.AHKID := "ahk_id " . (this.HWND:=_eHwnd)
-		RegExMatch(_opt.editOptions, "Pi)(^|\s)\K\+?[^-]?Resize(?=\s|$)", _resize) ; matchs if the '(+)Resize' option is specified
-		if (_resize) {
-			GuiControlGet, _pos, Pos, % _eHwnd
-			GUI, % _GUIID . ":Add", Text, % "0x12 w11 h11 " . Format("x{1} y{2}", _posx + _posw - 7, _posy + _posh - 7) . " hwnd_szHwnd"
-			; , % Chr(9698) ; https://unicode-table.com/fr/25E2/
-			this._szHwnd := _szHwnd, _fn := this.__resize.bind(this)
-			GuiControl +g, % _szHwnd, % _fn ; set the function object which handles the static control's events
-		}
 		_menu := this.menu
 		:= new eAutocomplete.Menu(this,_opt.maxSuggestions,_opt.menuBackgroundColor,_opt.menuFontName,_opt.menuFontOptions)
 		(_opt.hasKey("onSelect") && _menu.onSelect:=_opt.onSelect)
@@ -117,11 +122,13 @@
 			_fn1 := _menu._setSelection.bind(_menu, -1), _fn2 := _menu._setSelection.bind(_menu, +1)
 			Hotkey, Up, % _fn1
 			Hotkey, Down, % _fn2 ; use both the Down and Up arrow keys to select from the list of available suggestions
+			Hotkey, +Tab, % _fn1
+			Hotkey, Tab, % _fn2
 			_fn1 := _menu._setSz.bind(_menu, -1), _fn2 := _menu._setSz.bind(_menu, 1)
 			Hotkey, !Left, % _fn1
 			Hotkey, !Right, % _fn2 ; use both Alt+Left and Alt+Right keyboard shortcuts to respectively shrink/expand the menu
 			_fn := _menu._reset.bind(_menu, _autocomplete:=true)
-			Hotkey, Tab, % _fn ; press the TAB key to select an item from the drop-down list
+			Hotkey, Right, % _fn ; press the right arrow key to select an item from the drop-down list
 			_fn := _menu._reset.bind(_menu)
 			Hotkey, Escape, % _fn ; the drop-down list can be closed by pressing the ESC key
 			_fn := this._sendEnter.bind(this)
@@ -136,6 +143,7 @@
 		GUI, %_GUI%:Default
 		WinExist(_lastFoundWindow)
 
+	return eAutocomplete._instances[_eHwnd] := this
 	}
 	addSource(_source, _list, _delimiter:="`n", _fileFullPath:="") {
 
@@ -190,10 +198,11 @@
 			this._onSize := ""
 			_fn := this._fnIf, _f := Func("WinActive")
 			Hotkey, If, % _fn
-				for _, _keyName in ["Up", "Down", "Tab", "!Left", "!Right", "Escape", "BackSpace", "Enter"]
+				for _, _keyName in ["Up", "Down", "+Tab", " Tab", "Right", "!Left", "!Right", "Escape", "BackSpace", "Enter"]
 					Hotkey, % _keyName, % _f
 			Hotkey, If,
 			this.menu := ""
+			eAutocomplete._instances[ this.HWND ] := ""
 		}
 	; ===============================================================================================================
 	; ============================/ PUBLIC METHODS =====================================================
@@ -214,11 +223,11 @@
 	ControlSend,, {Enter}, % this.AHKID
 	}
 	_sendBackspace() {
-		this.menu._reset()
 		if not (this.autoAppend) {
 			ControlSend,, {BackSpace}, % this.AHKID
 		return
 		}
+		this.menu._reset()
 		ControlSetText,, % this._lastLSide . this._lastRSide, % this.AHKID
 		_pos := this._lastCaretPos
 		SendMessage, 0xB1, % _pos, % _pos,, % this.AHKID ; EM_SETSEL
@@ -240,12 +249,12 @@
 		_caretPos := this._getSelection()
 		_vicinity := SubStr(_input, _caretPos, 2) ; the two characters in the vicinity of the current caret/insert position
 		if ((StrLen(RegExReplace(_vicinity, "\s$")) <= 1)
-			&& (RegExMatch(SubStr(_input, 1, _caretPos), "\S+(?P<IsWord>\s?)$", _m))
+			&& (RegExMatch(SubStr(_input, 1, _caretPos), "\S+(?P<IsWord> ?)$", _m))
 			&& (StrLen(this._lastMatch:=_m) >= this.startAt)) {
 				if (_mIsWord) { ; if the word is completed...
 					if (this.appendHapax && !InStr(_m, "*")) {
 						ControlGet, _choice, Choice,,, % _menu.AHKID
-						if not ((_m:=RTrim(_m, A_Space)) = _choice) ; if it is not suggested...
+						if not ((_m:=Trim(_m, A_Space)) = _choice) ; if it is not suggested...
 							this.__hapax(SubStr(_m, 1, 1), _m) ; append it to the dictionary
 					}
 				} else if not (_w:=(_letter:=SubStr(_m, 1, 1)) = "*") {
@@ -256,8 +265,8 @@
 							, "`ni)" . _d . "(?!\Q" . _parts.1 . "\E[^" . _d . "]+\Q" . _parts.2 . "\E).+?(?=" . _d . ")")
 							; remove all irreleavant lines from the subsection of the dictionary. I am particularly indebted to AlphaBravo for this regex
 						} else {
-							_m := "\Q" . _m . "\E"
-							RegExMatch(_str, "`nsi)" . _d . _m . "[^" . _d . "]+(.*" . _d . _m . ".+?(?=" . _d . "))?", _match)
+							_q := "\Q" . _m . "\E"
+							RegExMatch(_str, "`nsi)" . _d . _q . "[^" . _d . "]+(.*" . _d . _q . ".+?(?=" . _d . "))?", _match)
 						}
 					}
 				} ; else if (_w && this.matchModeRegEx && (_parts:=StrSplit(_m, "*")).length() = 2) {
@@ -270,11 +279,9 @@
 		if (LTrim(_match, _source.delimiter) <> "") {
 			GuiControl,, % _menu.HWND, % _match
 			_menu._lbCount := _count
-			if (this.autoAppend && !(this.matchModeRegEx && InStr(_m, "*"))) {
-					_menu._setSelection(+1, true)
-			} else _menu._selectedItem := "", _menu._selectedItemIndex := 0
-			this.menu._setSz(), this.menu._setPos()
-		} else this.menu._reset()
+			_menu._setSelection(this.autoAppend && !(this.matchModeRegEx && InStr(_m, "*")), true)
+			_menu._setSz(), _menu._setPos()
+		} else _menu._reset()
 		(this._onEvent && this._onEvent.call(this, _eHwnd, _input))
 
 	}
@@ -350,17 +357,7 @@
 				return this._onSelect
 				}
 			}
-			_setSelection(_prm, _update:=false) {
-
-				_count := this._lbCount
-				if (_prm > 0) {
-					Control, Choose, % (this._selectedItemIndex >= _count)
-					? this._selectedItemIndex:=1 : ++this._selectedItemIndex,, % this.AHKID
-				} else Control, Choose, % (this._selectedItemIndex <= 1)
-					? (this._selectedItemIndex:=_count) : --this._selectedItemIndex,, % this.AHKID
-
-				ControlGet, _item, Choice,,, % this.AHKID ; we use ControlGet instead of GuiControlGet to prevent AltSubmit from interfering
-				this._selectedItem := _item
+			_setSelection(_prm:=0, _update:=false) {
 
 				_owner := this._owner
 				ControlGetText, _input,, % _ahkid := _owner.AHKID
@@ -371,6 +368,19 @@
 					_owner._lastLSide := _leftSide
 					_owner._lastRSide := _rightSide
 				}
+				_count := this._lbCount
+				if not (_prm) {
+					this._selectedItem := "", this._selectedItemIndex := 0
+				return
+				} else if (_prm > 0) {
+					Control, Choose, % (this._selectedItemIndex >= _count)
+					? this._selectedItemIndex:=1 : ++this._selectedItemIndex,, % this.AHKID
+				} else Control, Choose, % (this._selectedItemIndex <= 1)
+					? (this._selectedItemIndex:=_count) : --this._selectedItemIndex,, % this.AHKID
+
+				ControlGet, _item, Choice,,, % this.AHKID ; we use ControlGet instead of GuiControlGet to prevent AltSubmit from interfering
+				this._selectedItem := _item
+
 				_pos := RegExMatch(_leftSide, "P)\S+$", _length) ; matches the last entered word starting from the left-hand side of the caret/insert current position
 				StringTrimRight, _leftSide, % _leftSide, % _length ; arabic alphabets should also be considered (StringTrimLeft?)
 				ControlSetText,, % _leftSide . _item . _rightSide, % _ahkid ; inserts the selected item in the string
@@ -411,11 +421,12 @@
 			_reset(_autocomplete:=false) {
 
 				_ahkid := this._owner.AHKID
+				SendMessage, 0xB1, -1,,, % _ahkid ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
 				if (_autocomplete) {
-					SendMessage, 0xB1, -1,,, % _ahkid ; EM_SETSEL (https://msdn.microsoft.com/en-us/library/windows/desktop/bb761661(v=vs.85).aspx)
+					_selectedItemIndex := this._selectedItemIndex, _selectedItem := this._selectedItem
 					ControlSend,, {Space}, % _ahkid
-					if (this._selectedItemIndex)
-						((_fn:=this._onSelect) && _fn.call(this, this._selectedItem))
+					if (_selectedItemIndex)
+						((_fn:=this._onSelect) && _fn.call(this, _selectedItem))
 				} else SendMessage, 0x0184, 0, 0,, % _ahkid ; LB_RESETCONTENT
 				this._selectedItem := "", this._selectedItemIndex := this._lbCount := 0
 				GUI % this._parent . ":Show", Hide
