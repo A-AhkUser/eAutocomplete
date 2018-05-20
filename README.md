@@ -1,6 +1,6 @@
 ## eAutocomplete
 
-Enables users to quickly find and select from a dynamic pre-populated list of suggestions as they type in an AHK Edit control, leveraging typing, searching and/or filtering.
+Enables users to quickly find and select from a dynamic pre-populated list of suggestions as they type in an Edit control, leveraging typing, searching and/or filtering.
 
 > forum thread @[AutoHotkey.com](https://autohotkey.com/boards/viewtopic.php?f=6&t=48940)
 
@@ -15,72 +15,30 @@ Enables users to quickly find and select from a dynamic pre-populated list of su
 <ul>
   <li><a href="#description-commands">Description, commands</a></li>
   <li><a href="#how-to">How to</a></li>
+  <li><a href="#create-method">Create method</a></li>
+  <li><a href="#attach-method">Attach method</a></li>
   <li><a href="#options">Options</a></li>
   <li><a href="#available-methods">Available methods</a></li>
   <li><a href="#event-handling">Event handling</a></li>
-  <li><a href="https://github.com/A-AhkUser/eAutocomplete/tree/attach"><i>Attach method [experimental]</i></a></li>
 </ul>
 
 ## Description, commands
 The script enables users, as typing in the Edit control, to quickly find and select from a dynamic pre-populated list of suggestions in order to expand partially entered strings into complete strings. When a user starts to type in the edit control, a listbox should display suggestions to complete the word, based both on earlier typed letters and the content of a [custom list](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods).
 
-* Use both the `Down` and `Up` arrow keys (or alternatively `Tab` and `Shift+Tab`) to select from the list of available suggestions.
-* Press the `Right` key to send the selected item (or simply `Enter` if you also intend to move to the next line at the same time).
-* The drop-down list can be closed by pressing the `ESC` key.
-* Use both the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
+* Use `Tab` to select the top most suggestion and both the `Down` and `Up` arrow keys to select from the list all other available suggestions. If the `autoAppend` option is enabled, the top most suggestion is automatically selected (see also: [options](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options)).
+* Press the `Tab` key to send the selected item (or simply `Enter` if you also intend to move to the next line at the same time).
+* The drop-down list can be closed by pressing the `Esc` key.
+* Use the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
 
-By default, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression, matching zero or more occurrences of any character (for example, ' **v**\***o** ' matches ' **v**olcan**o** '). As for *hapax legomena* they are by default appended to the current list, whether it is a variable or a file (see also: [options](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options)).
+By default, an occurrence of the `regExSymbol` (by default: the asterisk) in the middle of a string will be interpreted not literally but as a regular expression, matching zero or more occurrences of any non-space character (for example, ' **v**\***o** ' matches ' **v**olcan**o** '). As for *hapax legomena*, they are appended to the current list, whether it is a variable or a file (see also: [options](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options)).
 
 ## How to
-First create a GUI and use the [+HwndGuiHwnd option](https://www.autohotkey.com/docs/commands/Gui.htm#GuiHwndOutputVar) to store the HWND of the window in `GuiHwnd`
-. Create a new instance of `eAutocomplete` in accordance with the following syntax:
-
-```Autohotkey
-#NoEnv
-#SingleInstance force
-#Warn
-; Windows 8.1 64 bit - Autohotkey v1.1.28.00 32-bit Unicode
-
-#Include %A_ScriptDir%\eAutocomplete.ahk
-
-frenchWords =
-(
-alpha
-accepter
-acclamer
-accolade
-accroche
-accuser
-acerbe
-achat
-acheter
-)
-englishWords := "door*rain*car*window*time*house*sun"
-GUI, +Resize +hwndGUIID ; +hwndGUIID stores the window handle (HWND) of the GUI in 'GUIID'
-GUI, Font, s14, Segoe UI
-GUI, Color, White, White
-options :=
-(LTrim Join C
-	{
-		editOptions: "Section x11 y11 w300 h65 +Resize", ; sets the edit control's options; the 'Resize' option may be listed to allow the user to resize both the height and width of the edit control
-		startAt: 2, ; the minimum number of characters a user must type before a search is performed
-		matchModeRegEx: true, ;  an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (.*)
-		appendHapax: true, ; hapax legomena will be appended to the current local word list
-		maxSuggestions: 5
-	}
-)
-A := new eAutocomplete(GUIID, options)
-A.addSource("frenchWords", frenchWords, "`n")
-A.addSource("englishWords", englishWords, "*")
-; A.setSource("englishWords") ; defines the word list to use
-A.setSource("frenchWords") ; defines the word list to use
-GUI, Show, w400 h330, eAutocomplete
-return
-```
+First create a GUI and use the [+HwndGuiHwnd option](https://www.autohotkey.com/docs/commands/Gui.htm#GuiHwndOutputVar) to store the HWND of the window in `GuiHwnd`. Then, you can either [create](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#create-method) an `eAutocomplete` control or endow with word completion feature an existing edit control by means of the [attach method](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#attach-method).
 ##
+## Create method
 ***
 ```Autohotkey
-A := new eAutocomplete(_GUIID, _options:="")
+A := eAutocomplete.create(_GUIID, _options:="")
 ```
 ***
 ##### parameters:
@@ -90,20 +48,40 @@ A := new eAutocomplete(_GUIID, _options:="")
 #####
 . ``_options`` *OPTIONAL* [OBJECT]
 ###### description:</br>
-> An object. If applicable, the following properties are processed:
+> An object. If applicable, the [following keys](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options) are processed.
 ##
+## Attach method
+***
+```Autohotkey
+A := eAutocomplete.attach(_GUIID, _eHwnd, _options:="")
+```
+***
+##### description:
+Endow with word completion feature an existing edit control.
+##### parameters:
+. ``_GUIID`` [HWND]
+###### description:
+> The GUI's HWND.
+#####
+. ``_eHwnd`` [HWND]
+###### description:
+> The edit control's HWND.
+#####
+. ``_options`` *OPTIONAL* [OBJECT]
+###### description:</br>
+> An object. If applicable, the [following keys](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options) are processed:
 ### Options
-*Keys that are marked with asterisk may at any time be modified after the control is created by setting the value of the respective property.
-Otherwise, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.htm) to make a variety of changes to a control in a GUI window once it is created. `A.HWND` and `A.menu.HWND` contain respectively the edit control and the drop-down list control's HWND.*
+*Keys that are marked with asterisk may at any time be modified after the control is created by setting the value of the respective property. In other cases, use [GuiControl](https://www.autohotkey.com/docs/commands/GuiControl.htm) or [Control](https://www.autohotkey.com/docs/commands/Control.htm) to make a variety of changes to a control in a window once it is created. `A.HWND` and `A.menu.HWND` contain respectively the edit control and the drop-down list control's HWND.*
 
 | key | description | default value
 | :---: | :---: | :---: |
-| ``editOptions`` | Set the edit control's options. The `+Resize` option may be listed in ``options`` to allow the user to resize both the height and width of the edit control. *note: The edit control comes with the `ES_MULTILINE` style - which designates a multiline edit control - regardless of whether the `+Multi` is listed in options. It is coerced due to a internal limitation.* | `"w150 h35 Multi"`
+| ``editOptions`` | Set the edit control's options. The `+Resize` option may be listed in ``options`` to allow the user to resize both the height and width of the edit control. This option has no effect if the control is created using the `attach` method. | `""`
 | ``onEvent``* | Associate a function object with the edit control. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``disabled``* | Determine whether or not the word completion feature should start off in an initially-disabled state. | `false`
 | ``startAt``* | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2`
-| ``autoAppend``* |  If it evaluates to `true` - and presuming that the last word partially entered is not a regular expression - the first item in the drop-down list is pre-select/auto-append without the need to press any of the arrow keys. | `false`
-| ``matchModeRegEx``* | If set to `true`, an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (`.*` dot-star pattern). | `true`
+| ``autoAppend``* |  If it evaluates to `true` - and presuming that the last word partially entered is not a regular expression - the top most item in the drop-down list is pre-selected without the need to press the `Tab` key. | `false`
+| ``matchModeRegEx``* | If set to `true`, an occurrence of the `regExSymbol` character (see below) in the middle of a string will be interpreted not literally but as a regular expression. | `true`
+| ``regExSymbol``* | The character which is intended to  be interpreted - assuming `matchModeRegEx` is set to `true` - as a regular expression, matching zero or more occurrences of any non-space character (for example, **v**\***o** matches **v**olcan**o**). | `*`
 | ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current local word list. | `false`
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
@@ -132,7 +110,7 @@ Specifies the autocomplete list to use.
 ##
 ***
 ```AutoHotkey
-A.addSource(_source, _list, _delimiter:="`n")
+eAutocomplete.addSource(_source, _list, _delimiter:="`n")
 ```
 ***
 ##### description:
@@ -146,7 +124,7 @@ Creates a new autocomplete dictionary from an input string, storing it directly 
 ##
 ***
 ```AutoHotkey
-A.addSourceFromFile(_source, _fileFullPath, _delimiter:="`n")
+eAutocomplete.addSourceFromFile(_source, _fileFullPath, _delimiter:="`n")
 ```
 ***
 ##### description:
@@ -167,7 +145,7 @@ A.onEvent := Func("myEventMonitor")
 ```
 ***
 ##### description:
-Executes a custom function each time the user or the script itself changes the contents of the edit control.
+Executes a custom function each time the user changes the contents of the edit control.
 The function can optionally accept the following parameters:</br>
 ``myEventMonitor(this, _eHwnd, _input)``
 
@@ -196,7 +174,7 @@ A.onSize := Func("mySizeEventMonitor")
 ```
 ***
 ##### description:
-Executes a custom function when the user resizes the edit control (note: the control must have +Resize listed in `editOptions` to allow resizing by the user).
+Executes a custom function when the user resizes the edit control (note: the control must have been created using the `create` method and have +Resize listed in `editOptions` to allow resizing by the user).
 The function can optionally accept the following parameters:</br>
 ``mySizeEventMonitor(_parent, this, _w, _h, _mousex, _mousey)``
 
