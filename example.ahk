@@ -2,7 +2,6 @@
 #SingleInstance force
 SetWorkingDir % A_ScriptDir
 SendMode, Input
-CoordMode, ToolTip, Screen
 #Warn
 ; Windows 8.1 64 bit - Autohotkey v1.1.28.00 32-bit Unicode
 
@@ -10,7 +9,7 @@ CoordMode, ToolTip, Screen
 
 if not (FileExist(listPath:=A_ScriptDir . "\englishWordList.txt"))
 	UrlDownloadToFile, https://raw.githubusercontent.com/A-AhkUser/keypad-library/master/Keypad/Autocompletion/en, % listPath
-frenchWords = alpha|accepter|acclamer|accolade|accroche|accuser|acerbe|achat|acheter
+frenchWords = accepter|acclamer|accolade|accroche|accuser|acerbe|achat|acheter
 
 GUI, +Resize +hwndGUIID ; +hwndGUIID stores the window handle (HWND) of the GUI in 'GUIID'
 GUI, Font, s14, Segoe UI
@@ -22,27 +21,26 @@ options :=
 		onSize: "onSizeEventMonitor",
 		onEvent: "onEventMonitor", ; sets a function object to handle the edit control's events
 		startAt: 2, ; the minimum number of characters a user must type before a search is performed
-		matchModeRegEx: true, ;  an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression (.*)
-		appendHapax: true, ; hapax legomena will be appended to the current local word list
+		matchModeRegEx: true, ;  an occurrence of the wildcard character in the middle of a string will be interpreted not literally but as a regular expression
+		appendHapax: true, ; hapax legomena will be appended to the current word list
 		onSelect: "onSelectEventMonitor",
 		maxSuggestions: 7,
 		menuBackgroundColor: "242bf4",
 		menuFontOptions: "cFFFFFF s14",
 		menuFontName: "Segoe UI"
-	}
+	} ; see also https://github.com/A-AhkUser/eAutocomplete#options
 )
 A := new eAutocomplete(GUIID, options)
-A.addSourceFromFile("englishWordList", listPath, "`n")
+eAutocomplete.addSourceFromFile("englishWordList", listPath, "`n") ; the final parameter is the delimiter which seperates each item in the list
+eAutocomplete.addSource("frenchWords", frenchWords, "|")
 A.setSource("englishWordList")
-A.addSource("frenchWords", frenchWords, "|")
 ; A.setSource("frenchWords") ; defines the word list to use
-A.setDimensions(120, 55, 420, 300)
 A.onSize := Func("onSizeEventMonitor")
 GUI, Show, w442 h322, eAutocomplete
 OnExit, handleExit
 return
 
-handleExit:
+handleExit: ; the script should dispose the instance before exiting
 A.dispose()
 ExitApp
 
@@ -60,7 +58,7 @@ ExitApp
 	MsgBox % A.menu.HWND
 return
 onEventMonitor(_autocomplete, _eHwnd, _input) {
-ToolTip % _autocomplete.HWND+0 "," _eHwnd "," _input
+ToolTip % _autocomplete.HWND+0 "," _eHwnd "," StrLen(_input), 0, 0
 }
 onSelectEventMonitor(_autocomplete, _selection) {
 MsgBox, 4,, % "Do you want to search the word " . _selection . "?"
@@ -69,5 +67,5 @@ IfMsgBox No
 run % "https://duckduckgo.com/?q=" . _selection
 }
 onSizeEventMonitor(_GUI, _autocomplete, _w, _h, _mousex, _mousey) {
-ToolTip % _GUI "," _autocomplete.HWND "," _w "," _h "," _mousex "," _mousey
+ToolTip % _GUI "," _autocomplete.HWND "," _w "," _h "," _mousex "," _mousey, 0, 0
 }
