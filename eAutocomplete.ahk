@@ -289,7 +289,7 @@
 			((_count > 132 && _count:=132) && _match:=SubStr(_match, 1, InStr(_match, _d,,, 132))) ; 133 - 1
 			GuiControl,, % _menu.HWND, % _match
 			_menu._lbCount := _count
-			_menu._setSelection(_menu._selectedItemIndex:=(this.autoAppend && !_regExMode), _update:=true)
+			_menu._selectedItemIndex:= 0, _menu._setSelection((this.autoAppend && !_regExMode), _update:=true)
 			_menu._setSz(), _menu._setPos() ; update the size and the position of the menu
 		} else _menu._reset()
 		(this._onEvent && this._onEvent.call(this, _eHwnd, _input))
