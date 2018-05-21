@@ -14,26 +14,45 @@ Enables users to quickly find and select from a dynamic pre-populated list of su
 ## Table of Contents
 <ul>
   <li><a href="#description-commands">Description, commands</a></li>
-  <li><a href="#how-to">How to</a></li>
-  <li><a href="#create-method">Create method</a></li>
-  <li><a href="#attach-method">Attach method</a></li>
+  <li>How to use
+    <ul>
+    <li><a href="#how-to">Without scripting</a></li>
+    <li><a href="#how-to">Through scripting</a></li>
+    </ul>
+  </li>
+ </ul>
+ <ul>
+  <li><a href="#create-method">Create base method</a></li>
+  <li><a href="#attach-method">Attach base method</a></li>
   <li><a href="#options">Options</a></li>
   <li><a href="#available-methods">Available methods</a></li>
   <li><a href="#event-handling">Event handling</a></li>
 </ul>
 
 ## Description, commands
-The script enables users, as typing in the Edit control, to quickly find and select from a dynamic pre-populated list of suggestions in order to expand partially entered strings into complete strings. When a user starts to type in the edit control, a listbox should display suggestions to complete the word, based both on earlier typed letters and the content of a [custom list](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods).
+The script enables users, as typing in an Edit control, to quickly find and select from a dynamic pre-populated list of suggestions and expand partially entered strings into complete strings. When a user starts to type in the edit control, a listbox should display suggestions to complete the word, based both on earlier typed letters and the content of a [custom list](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods).
 
 * Use `Tab` to select the top most suggestion and both the `Down` and `Up` arrow keys to select from the list all other available suggestions. If the `autoAppend` option is enabled, the top most suggestion is automatically selected (see also: [options](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options)).
 * Press the `Tab` key to send the selected item (or simply `Enter` if you also intend to move to the next line at the same time).
 * The drop-down list can be closed by pressing the `Esc` key.
 * Use the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
 
-By default, an occurrence of the `regExSymbol` (by default: the asterisk) in the middle of a string will be interpreted not literally but as a regular expression, matching zero or more occurrences of any non-space character (for example, ' **v**\***o** ' matches ' **v**olcan**o** '). As for *hapax legomena*, they are appended to the current list, whether it is a variable or a file (see also: [options](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options)).
+By default, an occurrence of the `regExSymbol` (by default: the asterisk) in the middle of a string will be interpreted not literally but as a regular expression, matching zero or more occurrences of any non-space character (for example, ' **v**\***o** ' matches ' **v**olcan**o** '). As for *hapax legomena*, they are appended to the current list, whether it is a variable or a file.
 
 ## How to
-First create a GUI and use the [+HwndGuiHwnd option](https://www.autohotkey.com/docs/commands/Gui.htm#GuiHwndOutputVar) to store the HWND of the window in `GuiHwnd`. Then, you can either [create](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#create-method) an `eAutocomplete` control or endow with word completion feature an existing edit control by means of the [attach method](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#attach-method).
+
+#### Without scripting
+
+- Download this repository from [zip/master](https://github.com/A-AhkUser/eAutocomplete/archive/master.zip) and unzip its content in your system.
+- Download and install *AutoHotkey* (Unicode 32-bit version) [[Autohotkey.com](https://autohotkey.com/)].
+- Run notepad.
+- Double-click on `example_attach.ahk` in the main directory. You should in all likelihood see the script's icon on the tray menu (bottom-right part of the screen by default).
+- That's it!
+  
+#### Through scripting
+
+You can either [create](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#create-method) an `eAutocomplete` control or endow with word completion feature an existing edit control by means of the [attach method](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#attach-method).
+
 ##
 ## Create method
 ***
@@ -95,6 +114,7 @@ Endow with word completion feature an existing edit control.
 * **addSource**
 * **addSourceFromFile**
 
+*All methods set `ErrorLevel` and return `false` upon failure*
 ###
 ***
 ```AutoHotkey
@@ -119,7 +139,7 @@ Creates a new autocomplete dictionary from an input string, storing it directly 
 | parameters | description |
 |:-|:-|
 | ``_source`` | The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
-| ``_list`` | The list as string. |
+| ``_list`` | The list as string of characters. |
 | ``_delimiter`` [OPTIONAL] | The delimiter which seperates each item in the list. |
 ##
 ***
