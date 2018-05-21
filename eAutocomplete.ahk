@@ -93,7 +93,7 @@
 			GUI, %_GUI%:Default
 			WinExist(_lastFoundWindow)
 			DetectHiddenWindows % _detectHiddenWindows
-		return !ErrorLevel:=1
+		return "", ErrorLevel:=1
 		}
 		DetectHiddenWindows % _detectHiddenWindows
 
@@ -120,7 +120,7 @@
 			(_opt.hasKey("regexSymbol") && this.regexSymbol:=_opt.regexSymbol)
 			(_opt.hasKey("onEvent") && this.onEvent:=_opt.onEvent)
 			(_opt.hasKey("onSize") && this.onSize:=_opt.onSize)
-		} else _opt:={}
+		} else _opt:={}, this.autoAppend:=this.appendHapax:=!(this.matchModeRegEx:=true)
 
 		_menu := this.menu
 		:= new eAutocomplete.Menu(this,_opt.maxSuggestions,_opt.menuBackgroundColor,_opt.menuFontName,_opt.menuFontOptions)
@@ -354,7 +354,7 @@
 
 				this._owner := _owner
 				this._selectedItem := "", this._selectedItemIndex := 0 := this._lbCount := 0
-				this.maxSuggestions := _maxSuggestions
+				((_maxSuggestions = "") && _maxSuggestions:=7), this.maxSuggestions := _maxSuggestions
 				GUI, New, % "+hwnd_menuParentHwnd +LastFound +ToolWindow -Caption +E0x20 +Owner" . _owner._parent
 				GUI, Color,, % _bkColor
 				GUI, Font, % _ftOptions, % _ftName
