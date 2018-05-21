@@ -5,26 +5,52 @@
 
 #Include %A_ScriptDir%\eAutocomplete.ahk
 
-frenchWords =
-(
-alpha
-accepter
-acclamer
-accolade
-accroche
-accuser
-acerbe
-achat
-acheter
-)
 WinWait, ahk_class Notepad
 ControlGet, eHwnd, Hwnd,, Edit1, % "ahk_id " . WinExist()
-A := eAutocomplete.attach(WinExist(), eHwnd, {startAt: 2, matchModeRegEx: true, maxSuggestions: 5, autoAppend: true})
-eAutocomplete.addSource("frenchWords", frenchWords, "`n")
-A.setSource("frenchWords")
+A := eAutocomplete.attach(WinExist(), eHwnd)
+Loop, 3
+	Menu, startAt, Add, % a_index, startAt
+Menu, Tray, Add, &Start at..., :startAt
+Menu, startAt, Check, % A.startAt
+Menu, Tray, Add, &AutoAppend, autoAppend
+Menu, Tray, Add, &Regular expressions (*), matchModeRegEx
+Menu, Tray, Check, &Regular expressions (*)
+Menu, Tray, Add, Append &new occurrences, appendHapax
+Menu, Tray, Add,
+Menu, Tray, Add, &Word list..., setSource
+Menu, Tray, Add, &Disable, disabled
+Menu, Tray, Add, &Exit, exit
+Menu, Tray, NoStandard
 OnExit, handleExit
 return
 
-handleExit: ; the script should dispose the instance before exiting
+
+startAt:
+	Menu, startAt, UnCheck, % A.startAt
+	Menu, startAt, Check, % (A.startAt:=A_ThisMenuItemPos)
+return
+
+autoAppend:
+matchModeRegEx:
+appendHapax:
+	A[ A_ThisLabel ] := !A[ A_ThisLabel ]
+	Menu, Tray, ToggleCheck, % A_ThisMenuItem
+return
+
+disabled:
+	Menu, Tray, Rename, % A_ThisMenuItem, % (A.disabled:=!A.disabled) ? "&Enable" : "&Disable"
+return
+
+setSource:
+	FileSelectFile, path, 1,, Select a word list, Text Documents (*.txt)
+	SplitPath, % path,,, extension
+	ErrorLevel += (extension <> "txt")
+	if (!ErrorLevel && eAutocomplete.addSourceFromFile("Default", path, "`n") && A.setSource("Default"))
+		return
+	MsgBox, 64,, Could not load word list.
+return
+
+exit:
+handleExit:
 A.dispose()
 ExitApp
