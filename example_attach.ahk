@@ -22,6 +22,7 @@ Menu, Tray, Add, &Disable, disabled
 Menu, Tray, Add, &Exit, exit
 Menu, Tray, NoStandard
 OnExit, handleExit
+TrayTip, % A_ScriptName, Please first select a word list.
 return
 
 
