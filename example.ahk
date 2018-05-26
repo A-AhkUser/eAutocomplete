@@ -30,7 +30,7 @@ options :=
 		menuFontName: "Segoe UI"
 	} ; see also https://github.com/A-AhkUser/eAutocomplete#options
 )
-A := new eAutocomplete(GUIID, options)
+A := eAutocomplete.create(GUIID, options)
 eAutocomplete.addSourceFromFile("englishWordList", listPath, "`n") ; the final parameter is the delimiter which seperates each item in the list
 eAutocomplete.addSource("frenchWords", frenchWords, "|")
 A.setSource("englishWordList")
