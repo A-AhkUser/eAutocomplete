@@ -21,7 +21,7 @@
 		; --------------- version ---------------
 			1.0.00
 		; --------------- revision history ---------------
-			1.0.00 *initial release* (2018/12/21)
+			1.0.00 *initial release* (2018/05/26)
 		; --------------- acknowledgements ---------------
 			. Thanks to brutus_skywalker for his valuable suggestions on how to make more ergonomic and user-friendly the common
 				features provided by the script via the use of keyboard shortcuts.
@@ -252,10 +252,6 @@
 			UnhookWinEvent(this._winEventObjectLocationChangeEventHook)
 			UnhookWinEvent(this._winEventObjectDestroyEventHook)
 			UnhookWinEvent(this._winEventObjectTextSelectionChangedEventHook)
-			MsgBox % A_ThisFunc
-		}
-		__Delete() {
-		MsgBox % A_ThisFunc
 		}
 	; ===============================================================================================================
 	; ============================/ PUBLIC METHODS =====================================================
