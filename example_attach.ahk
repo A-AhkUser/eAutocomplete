@@ -7,7 +7,7 @@
 
 WinWait, ahk_class Notepad
 ControlGet, eHwnd, Hwnd,, Edit1, % "ahk_id " . WinExist()
-A := eAutocomplete.attach(WinExist(), eHwnd)
+A := eAutocomplete.attach(eHwnd)
 Loop, 3
 	Menu, startAt, Add, % a_index, startAt
 Menu, Tray, Add, &Start at..., :startAt
