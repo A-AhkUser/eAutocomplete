@@ -30,24 +30,25 @@ Enables users to quickly find and select from a dynamic pre-populated list of su
 </ul>
 
 ## Description, commands
-The script enables users, as typing in an Edit control, to quickly find and select from a dynamic pre-populated list of suggestions and expand partially entered strings into complete strings. When a user starts to type in the edit control, a listbox should display suggestions to complete the word, based both on earlier typed letters and the content of a [custom list](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods).
+The library enables users, as typing in an Edit control, to quickly find and select from a dynamic pre-populated list of suggestions and, by this means, to expand partially entered strings into complete strings. When a user starts to type in the edit control, a listbox should display suggestions to complete the word, based both on earlier typed letters and the content of a [custom list](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods).
 
 * Use `Tab` to select the top most suggestion and both the `Down` and `Up` arrow keys to select from the list all other available suggestions. If the `autoAppend` option is enabled, the top most suggestion is automatically selected (see also: [options](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options)).
-* Press the `Tab` key to send the selected item (or simply `Enter` if you also intend to move to the next line at the same time).
+* Press the `Tab` key to actually send the selected item (or simply `Enter` if you also intend to move to the next line at the same time).
 * The drop-down list can be closed by pressing the `Esc` key.
 * Use the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
 
-By default, an occurrence of the `regExSymbol` (by default: the asterisk) in the middle of a string will be interpreted not literally but as a regular expression, matching zero or more occurrences of any non-space character (for example, ' **v**\***o** ' matches ' **v**olcan**o** '). As for *hapax legomena*, they are appended to the current list, whether it is a variable or a file.
+By default, an occurrence of the `regExSymbol` - by default: the asterisk - in the middle of a string will be interpreted not literally but as part of a regular expression, matching zero or more occurrences of any non-space character (*e.g.* **v**\***o** matches **v**olcan**o**). As for *hapax legomena*, they are appended to the current list, whether it is a variable or a file.
 
 ## How to
 
 #### Without scripting
 
-- Download this repository from [zip/master](https://github.com/A-AhkUser/eAutocomplete/archive/master.zip) and unzip its content in your system.
+- Download the latest release from [zip/master](https://github.com/A-AhkUser/eAutocomplete/archive/master.zip) and extract the content of the zip file to a location of your choice.
 - Download and install *AutoHotkey* (Unicode 32-bit version) [[Autohotkey.com](https://autohotkey.com/)].
+- Double-click on `example_attach.ahk` in the main directory. You should in all likelihood see the script's icon on the tray menu (bottom-right part of the screen). It provides access to the menu from which it is possible to set the main options available.
 - Run notepad.
-- Double-click on `example_attach.ahk` in the main directory. You should in all likelihood see the script's icon on the tray menu (bottom-right part of the screen by default).
-- That's it!
+- Load a word list from the menu.
+- Start typing in your notepad.
   
 #### Through scripting
 
@@ -72,16 +73,12 @@ A := eAutocomplete.create(_GUIID, _options:="")
 ## Attach method
 ***
 ```Autohotkey
-A := eAutocomplete.attach(_GUIID, _eHwnd, _options:="")
+A := eAutocomplete.attach(_eHwnd, _options:="")
 ```
 ***
 ##### description:
 Endow with word completion feature an existing edit control.
 ##### parameters:
-. ``_GUIID`` [HWND]
-###### description:
-> The GUI's HWND.
-#####
 . ``_eHwnd`` [HWND]
 ###### description:
 > The edit control's HWND.
@@ -99,9 +96,9 @@ Endow with word completion feature an existing edit control.
 | ``disabled``* | Determine whether or not the word completion feature should start off in an initially-disabled state. | `false`
 | ``startAt``* | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2`
 | ``autoAppend``* |  If it evaluates to `true` - and presuming that the last word partially entered is not a regular expression - the top most item in the drop-down list is pre-selected without the need to press the `Tab` key. | `false`
-| ``matchModeRegEx``* | If set to `true`, an occurrence of the `regExSymbol` character (see below) in the middle of a string will be interpreted not literally but as a regular expression. | `true`
-| ``regExSymbol``* | The character which is intended to  be interpreted - assuming `matchModeRegEx` is set to `true` - as a regular expression, matching zero or more occurrences of any non-space character (for example, **v**\***o** matches **v**olcan**o**). | `*`
-| ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current local word list. | `false`
+| ``matchModeRegEx``* | If set to `true`, an occurrence of the `regExSymbol` character (see below) in the middle of a string will be interpreted not literally but as part of a regular expression. | `true`
+| ``regExSymbol``* | The character which is intended to  be interpreted - assuming `matchModeRegEx` is set to `true` - as a pattern, matching zero or more occurrences of any non-space character (*e.g.* **v**\***o** matches **v**olcan**o**). | `*`
+| ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current word list. | `false`
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
 | ``menuBackgroundColor`` | Sets the background color of the menu. | `""`
