@@ -43,7 +43,7 @@ By default, an occurrence of the `regExSymbol` - by default: the asterisk - in t
 
 #### Without scripting
 
-- Download the latest release from [zip/master](https://github.com/A-AhkUser/eAutocomplete/archive/master.zip) and extract the content of the zip file to a location of your choice.
+- Download the latest release from [eAutocomplete/releases](https://github.com/A-AhkUser/eAutocomplete/releases) and extract the content of the zip file to a location of your choice.
 - Download and install *AutoHotkey* (Unicode 32-bit version) [[Autohotkey.com](https://autohotkey.com/)].
 - Double-click on `example_attach.ahk` in the main directory. You should in all likelihood see the script's icon on the tray menu (bottom-right part of the screen). It provides access to the menu from which it is possible to set the main options available.
 - Run notepad.
@@ -53,6 +53,7 @@ By default, an occurrence of the `regExSymbol` - by default: the asterisk - in t
 #### Through scripting
 
 You can either [create](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#create-method) an `eAutocomplete` control or endow with word completion feature an existing edit control by means of the [attach method](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#attach-method).
+> note: **The master branch is NOT considered as fully tested on each commit. Unlike the latest release.**
 
 ##
 ## Create method
