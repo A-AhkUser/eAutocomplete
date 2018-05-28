@@ -37,7 +37,7 @@ The library enables users, as typing in an Edit control, to quickly find and sel
 * The drop-down list can be closed by pressing the `Esc` key.
 * Use the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
 
-By default, an occurrence of the `regExSymbol` - by default: the asterisk - in the middle of a string will be interpreted not literally but as part of a regular expression, matching zero or more occurrences of any non-space character (*e.g.* **v**\***o** matches **v**olcan**o**). As for *hapax legomena*, they are appended to the current list, whether it is a variable or a file.
+By default, an occurrence of the `regExSymbol` - by default: the asterisk - in the middle of a string will be interpreted not literally but as part of a regular expression, matching zero or more occurrences of any non-delimiter character (*e.g.* **v**\***o** matches **v**olcan**o**). As for *hapax legomena*, they are appended to the current list, whether it is a variable or a file.
 
 ## How to
 
@@ -61,6 +61,7 @@ You can either [create](https://github.com/A-AhkUser/eAutocomplete/blob/master/R
 A := eAutocomplete.create(_GUIID, _options:="")
 ```
 ***
+*The `create` method throws an exception upon failure (such as if the host window does not exist).*
 ##### parameters:
 . ``_GUIID`` [HWND]
 ###### description:
@@ -76,6 +77,7 @@ A := eAutocomplete.create(_GUIID, _options:="")
 A := eAutocomplete.attach(_eHwnd, _options:="")
 ```
 ***
+*The `attach` method throws an exception upon failure (such as if the host control is not a representative of the class `Edit`).*
 ##### description:
 Endow with word completion feature an existing edit control.
 ##### parameters:
@@ -97,13 +99,14 @@ Endow with word completion feature an existing edit control.
 | ``startAt``* | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2`
 | ``autoAppend``* |  If it evaluates to `true` - and presuming that the last word partially entered is not a regular expression - the top most item in the drop-down list is pre-selected without the need to press the `Tab` key. | `false`
 | ``matchModeRegEx``* | If set to `true`, an occurrence of the `regExSymbol` character (see below) in the middle of a string will be interpreted not literally but as part of a regular expression. | `true`
-| ``regExSymbol``* | The character which is intended to  be interpreted - assuming `matchModeRegEx` is set to `true` - as a pattern, matching zero or more occurrences of any non-space character (*e.g.* **v**\***o** matches **v**olcan**o**). | `*`
-| ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current word list. | `false`
+| ``regExSymbol``* | The character which is intended to  be interpreted - assuming `matchModeRegEx` is set to `true` - as a pattern, matching zero or more occurrences of any non-delimiter character (*e.g.* **v**\***o** matches **v**olcan**o**). | `*`
+| ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current word list. (note: **if the [source](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods) is a file, its content will be overwritten at each onset of a word, by the updated word list**)| `false`
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
 | ``menuBackgroundColor`` | Sets the background color of the menu. | `""`
 | ``menuFontName`` | Sets the font typeface for the menu. | `""`
 | ``menuFontOptions`` | Sets the size, style, and/or color for the menu. | `""`
+| ``useRTL`` | The language is intended to be display in right-to-left (RTL) mode as with Arabic or Hebrew. **(not yet implemented)**| `false`
 ##
 ## Available methods
 
