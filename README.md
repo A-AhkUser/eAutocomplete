@@ -25,6 +25,7 @@ Enables users to quickly find and select from a dynamic pre-populated list of su
   <li><a href="#create-method">Create base method</a></li>
   <li><a href="#attach-method">Attach base method</a></li>
   <li><a href="#options">Options</a></li>
+  <li><a href="#available-properties">Available methods</a></li>
   <li><a href="#available-methods">Available methods</a></li>
   <li><a href="#event-handling">Event handling</a></li>
 </ul>
@@ -37,7 +38,7 @@ The library enables users, as typing in an Edit control, to quickly find and sel
 * The drop-down list can be closed by pressing the `Esc` key.
 * Use the `Alt+Left` and `Alt+Right` keyboard shortcuts to respectively shrink/expand the menu.
 
-By default, an occurrence of the `regExSymbol` - by default: the asterisk - in the middle of a string will be interpreted not literally but as part of a regular expression, matching zero or more occurrences of any non-delimiter character (*e.g.* **v**\***o** matches **v**olcan**o**). As for *hapax legomena*, they are appended to the current list, whether it is a variable or a file.
+By default, an occurrence of the `regExSymbol` - by default: the asterisk - in the middle of a string will be interpreted not literally but as part of a regular expression, matching zero or more occurrences of any non-delimiter character (*e.g.* **v**\***o** matches **v**olcan**o**). As for *hapax legomena* (first onset of a word), they can optionally be appended to the current source's list, whether it is a variable or a file.
 
 ## How to
 
@@ -57,6 +58,8 @@ You can either [create](https://github.com/A-AhkUser/eAutocomplete/blob/master/R
 
 ##
 ## Create method
+*An instance of `eAutocomplete` will be from now on referred to as `A`.*
+
 ***
 ```Autohotkey
 A := eAutocomplete.create(_GUIID, _options:="")
@@ -94,26 +97,41 @@ Endow with word completion feature an existing edit control.
 
 | key | description | default value
 | :---: | :---: | :---: |
-| ``editOptions`` | Set the edit control's options. The `+Resize` option may be listed in ``options`` to allow the user to resize both the height and width of the edit control. This option has no effect if the control is created using the `attach` method. | `""`
+| ``editOptions`` | Set the edit control's options. The `+Resize` option may be listed in ``options`` to allow the user to resize both the height and width of the edit control. This key is not processed if the control is created using the `attach` method. | `""`
 | ``onEvent``* | Associate a function object with the edit control. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``disabled``* | Determine whether or not the word completion feature should start off in an initially-disabled state. | `false`
 | ``startAt``* | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2`
 | ``autoAppend``* |  If it evaluates to `true` - and presuming that the last word partially entered is not a regular expression - the top most item in the drop-down list is pre-selected without the need to press the `Tab` key. | `false`
 | ``matchModeRegEx``* | If set to `true`, an occurrence of the `regExSymbol` character (see below) in the middle of a string will be interpreted not literally but as part of a regular expression. | `true`
 | ``regExSymbol``* | The character which is intended to  be interpreted - assuming `matchModeRegEx` is set to `true` - as a pattern, matching zero or more occurrences of any non-delimiter character (*e.g.* **v**\***o** matches **v**olcan**o**). | `*`
-| ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current word list. (note: **if the [source](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods) is a file, its content will be overwritten at each onset of a word, by the updated word list**)| `false`
+| ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current word list. (note: **if the [source](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods) is a file, its content will be overwritten by the updated list at the time it is replaced by calling the `setSource` method or at the time the `dispose` method is called**)| `false`
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
 | ``menuBackgroundColor`` | Sets the background color of the menu. | `""`
 | ``menuFontName`` | Sets the font typeface for the menu. | `""`
 | ``menuFontOptions`` | Sets the size, style, and/or color for the menu. | `""`
 | ``useRTL`` | The language is intended to be display in right-to-left (RTL) mode as with Arabic or Hebrew. **(not yet implemented)**| `false`
+
+##
+## Available properties
+
+* **focused**
+
+###
+***
+```AutoHotkey
+A.focused
+```
+***
+##### description:
+Contains `1` (`true`) if the autocomplete's host edit control is currently focused. Otherwise it contains `0` (`false`).
 ##
 ## Available methods
 
 * **setSource**
 * **addSource**
 * **addSourceFromFile**
+* **dispose**
 
 *All methods set `ErrorLevel` and return `false` upon failure*
 ###
@@ -156,6 +174,14 @@ Creates a new autocomplete dictionary from a file's content, storing it directly
 | ``_source`` | The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
 | ``_fileFullPath`` | The absolute path of the file to read. |
 | ``_delimiter`` [OPTIONAL] | The delimiter which seperates each item in the list. |
+##
+***
+```AutoHotkey
+A.dispose()
+```
+***
+##### description:
+Release all circular references and removes instance's own event hook functions (the class hook some events instead of querying windows objects when needed). A script should call the `dispose` method, at the latest at the time the script exits. Moreover, calling `dispose` ensures that *hapax legomena* are appended to the source's list, as the case may be.
 
 ##
 ## Event handling
@@ -166,7 +192,7 @@ A.onEvent := Func("myEventMonitor")
 ```
 ***
 ##### description:
-Executes a custom function each time the user changes the contents of the edit control.
+Executes a custom function each time the user changes the contents of the edit control. It is called only after the internal autocomplete search engine actually provided suggestions, if any (as an indicator, it benchmarked at ~125ms in some tests using russian word lists when the overall result had approximately 51000 matching items; otherwise, it is nearly instantaneous).</br>
 The function can optionally accept the following parameters:</br>
 ``myEventMonitor(this, _eHwnd, _input)``
 
@@ -181,7 +207,7 @@ A.onSelect := Func("mySelectEventMonitor")
 ```
 ***
 ##### description:
-Executes a custom function when the user selects a suggestion from the drop-down list (by pressing `Tab`).
+Executes a custom function when the user selects a suggestion from the drop-down list (by pressing `Tab`).</br>
 The function can optionally accept the following parameters:</br>
 ``mySelectEventMonitor(this, _selection)``
 
@@ -195,7 +221,7 @@ A.onSize := Func("mySizeEventMonitor")
 ```
 ***
 ##### description:
-Executes a custom function when the user resizes the edit control (note: the control must have been created using the `create` method and have +Resize listed in `editOptions` to allow resizing by the user).
+Executes a custom function when the user resizes the edit control (note: the control must have been created using the `create` method and have +Resize listed in `editOptions` to allow resizing by the user).</br>
 The function can optionally accept the following parameters:</br>
 ``mySizeEventMonitor(_parent, this, _w, _h, _mousex, _mousey)``
 
