@@ -25,7 +25,7 @@ Enables users to quickly find and select from a dynamic pre-populated list of su
   <li><a href="#create-method">Create base method</a></li>
   <li><a href="#attach-method">Attach base method</a></li>
   <li><a href="#options">Options</a></li>
-  <li><a href="#available-properties">Available methods</a></li>
+  <li><a href="#available-properties">Available properties</a></li>
   <li><a href="#available-methods">Available methods</a></li>
   <li><a href="#event-handling">Event handling</a></li>
 </ul>
