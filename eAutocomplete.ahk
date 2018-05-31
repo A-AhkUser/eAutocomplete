@@ -58,14 +58,16 @@
 	static _winEventHookTable := {} ; intended to keep track of *HWINEVENTHOOK* values
 	_idProcess := "" ; intended to contain the PID of the host GUI itself
 	_parent := "0x0" ; intended to contain the HWND of the host GUI itself
-	_szHwnd := "0x0" ; intended to contain the HWND of the static control which allows users to resize the edit control, when applicable
+	_hSz := "0x0" ; intended to contain the HWND of the static control which allows users to resize the edit control, when applicable
 
 	_fnIf := "" ; intended to contain the function object with which are associated instance's hotkeys (*Hotkey, If, % functionObject*)
 
 	_lastSourceAsObject := ""
 	_lastUncompleteWord := ""
+	_hapaxLegomena := {}
 
 	_startAt := 2 ; used as default value
+	_learnAt := 4 ; used as default value
 	_regexSymbol := "*" ; used as default value
 	_onEvent := "" ; used as default value
 	_onSize := "" ; used as default value
@@ -77,7 +79,6 @@
 	; ============================ PUBLIC PROPERTIES /=====================================================
 	; ===============================================================================================================
 	static sources := {"Default": {list: "", path: "", _GUIDelimiter: "`n", delimiter: "`n", _delimiterRegExSymbol: "\n"}}
-	static HAPAX_MINLENGTH := 4 ;  the minimum number of characters a hapax legomenon must contain to be appended to the current source's list, if applicable
 	focused {
 		set {
 		return this._focused
@@ -111,6 +112,14 @@
 		return this._startAt
 		}
 	}
+	learnAt {
+		set {
+		return (ErrorLevel:=not (value > 0)) ? this["_learnAt"] : this["_learnAt"]:=value
+		}
+		get {
+		return this._learnAt
+		}
+	}
 	autoAppend := false
 	regexSymbol {
 		set {
@@ -121,7 +130,7 @@
 		}
 	}
 	matchModeRegEx := true
-	appendHapax := false
+	appendHapax := 4 ;  the minimum number of characters a hapax legomenon must contain to be appended to the current source's list, if applicable
 	onEvent {
 		set {
 			eAutocomplete._setCallback(this, "_onEvent", value)
@@ -183,7 +192,7 @@
 		if (IsObject(_opt)) {
 			(_opt.hasKey("matchModeRegEx") && this.matchModeRegEx :=!!_opt.matchModeRegEx)
 			(_opt.hasKey("autoAppend") && this.autoAppend:=!!_opt.autoAppend)
-			(_opt.hasKey("appendHapax") && this.appendHapax:=!!_opt.appendHapax)
+			(_opt.hasKey("appendHapax") && this.appendHapax:=_opt.appendHapax)
 			; setters >>>>>>>>>>
 			(_opt.hasKey("startAt") && this.startAt:=_opt.startAt)
 			(_opt.hasKey("regexSymbol") && this.regexSymbol:=_opt.regexSymbol)
@@ -430,7 +439,10 @@
 	__hapax(_value) { ;  called at the first onset of a word (assuming *appendHapax* is set to *true*)
 		; _startTime := A_TickCount
 		_value := Trim(_value, "?!,;.:(){}[]'""<>") ; remove any trailing ?!,;.:(){}[]'""<> before actually appending a hapax legomenon to the current source's list
-		if not (StrLen(_value) >= eAutocomplete.HAPAX_MINLENGTH)
+		if not (StrLen(_value) >= this.appendHapax)
+			return
+		(this._hapaxLegomena.hasKey(_value) || this._hapaxLegomena[_value]:=0)
+		if not (++this._hapaxLegomena[_value] >= this._learnAt)
 			return
 		_source := this._lastSourceAsObject, _delimiter := _source.delimiter
 		if (_source.hasKey(_letter:=SubStr(_value, 1, 1)))
