@@ -86,6 +86,14 @@
 		return this._focused
 		}
 	}
+	content {
+		set {
+		return this._content
+		}
+		get {
+		return this._content
+		}
+	}
 	disabled {
 		set {
 			((this._enabled:=!this._shouldNotSuggest:=value) || this.menu._submit(false))
@@ -139,10 +147,11 @@
 	; ===============================================================================================================
 	create(_GUIID, _opt:="") {
 		_hLastFoundWindow := WinExist() ; get the current last found window in order to restore it later
-		try Gui % _GUIID ":+LastFoundExist"
-		IfWinNotExist ; if the host window is an existing GUI window...
-			throw ErrorLevel:=2
-		WinExist("ahk_id " . _hLastFoundWindow)
+		try {
+			Gui % _GUIID ":+LastFoundExist"
+			IfWinNotExist ; if the host window is an existing GUI window...
+				throw ErrorLevel:=2
+		} finally WinExist("ahk_id " . _hLastFoundWindow)
 	return new eAutocomplete(_GUIID, _opt)
 	}
 	attach(_hEdit, _opt:="") {
@@ -357,7 +366,7 @@
 		SendMessage % EM_SETSEL, % _startSel, % _endSel,, % this.AHKID
 	}
 
-	_suggestWordList(_hEdit, _input) { ; Autocomplete Search Engine
+	_suggestWordList(_hEdit) { ; Autocomplete Search Engine
 
 		this._shouldNotSuggest := true
 		; prevent the script from suggesting recursively: indicates to the *_objectLocationChangeEventMonitor* event hook function
@@ -367,7 +376,7 @@
 			return "", this._shouldNotSuggest := false
 
 		_source := this._lastSourceAsObject, _menu := this.menu
-		_caretPos := this._getSelection()
+		_input := this._content, _caretPos := this._getSelection()
 		this._lastUncompleteWord := _match := "", _regExMode := false
 
 		if ((StrLen(RegExReplace(SubStr(_input, _caretPos, 2), "\s$")) <= 1) ; if the caret is well placed to perform a search...
@@ -586,17 +595,16 @@
 		_objectLocationChangeEventMonitor(_event, _hwnd, _idObject) { ; handles location change events from both the caret and the host window
 			static OBJID_CARET := 0xFFFFFFF8 ; https://www.logsoku.com/r/2ch.net/software/1265518996/
 			static OBJID_WINDOW := 0x0 ; https://autohotkey.com/board/topic/45781-changing-a-windows-title-permanently/
-			static _lastFoundContents := {}
 			if (_idObject = OBJID_CARET) {
 				if not (eAutocomplete._CID.hasKey(_hwnd))
 					return
 				; if the event source is the caret in an autocomplete control...
 				_inst := eAutocomplete._CID[_hwnd]
 				_inst._getText(_text)
-				if (_text <> _lastFoundContents[_hwnd]) { ; if the contents of the edit control has been altered...
+				if (_text <> _inst._content) { ; if the contents of the edit control has been altered...
+					_inst._content := _text
 					if not (_inst._shouldNotSuggest) ; returns also false if the instance is disabled
-						_inst._suggestWordList(_hwnd, _text)
-					_lastFoundContents[_hwnd] := _text
+						_inst._suggestWordList(_hwnd)
 				}
 			} else if (_idObject = OBJID_WINDOW) {
 				_inst := eAutocomplete._CID[eAutocomplete._lastFoundControl]
@@ -614,7 +622,7 @@
 				} else {
 					if (_inst._shouldNotSuggest)
 						return
-					_inst._getText(_text) _inst._suggestWordList(_hwnd, _text)
+					_inst._suggestWordList(_hwnd)
 				}
 			}
 		}
