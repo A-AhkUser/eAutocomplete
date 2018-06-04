@@ -206,8 +206,8 @@
 			:= new eAutocomplete.Menu(this,_opt.maxSuggestions,_opt.menuBackgroundColor,_opt.menuFontName,_opt.menuFontOptions)
 			(_opt.hasKey("onSelect") && _menu.onSelect:=_opt.onSelect) ; set the function object which handles the menu control's events
 
-		_fn := this._fnIf := this._hotkeysShouldFire.bind("", "ahk_id " . _GUIID, _hEdit, _menu._parent)
-		; once passed to the Hotkey command, an object is never deleted, hence the empty string
+		_fn := this._fnIf := this._hotkeysShouldFire.bind({_parent: _GUIID, HWND: _hEdit, menu: {_parent: _menu._parent}})
+		; once passed to the Hotkey command, an object is never deleted, hence the hrad-coded object
 		Hotkey, If, % _fn
 			_fn1 := ObjBindMethod(_menu, "_setChoice", -1), _fn2 := ObjBindMethod(_menu, "_setChoice", +1)
 			Hotkey, Up, % _fn1
@@ -339,13 +339,12 @@
 	return !ErrorLevel:=0, _source[_eventName]:=_fn
 	}
 
-	_hotkeysShouldFire(_editParent, _hEdit, _menuParent, _thisHotkey) { ; *_thisHotkey* is automatically passed to the caller
-		if (DllCall("IsWindowVisible", "Ptr", _menuParent)) {
-			return WinActive(_editParent)
+	_hotkeysShouldFire(_thisHotkey) { ; *_thisHotkey* is automatically passed to the caller
+		if (DllCall("IsWindowVisible", "Ptr", this.menu._parent)) {
+			return WinActive("ahk_id " . this._parent)
 		} ; the menu is not visible: the word is not suggested
-		else if ((_inst:=eAutocomplete._CID[_hEdit])._focused && (_thisHotkey = "Enter") && _inst.appendHapax) {
+		else if ((_inst:=eAutocomplete._CID[ this.HWND ])._focused && (_thisHotkey = "Enter") && _inst.appendHapax)
 			_inst.__hapax(Trim(_inst._lastUncompleteWord, A_Space)) ; ...append the word to the current source's list
-		}
 		return false
 	}
 	_sendBackspace() {
@@ -412,8 +411,8 @@
 				}
 			}
 			_match := LTrim(_match, _d:=_source.delimiter)
+			_menu._updateList(_match)
 			if (_match <> "") {
-				_menu._updateList(_match)
 				_menu._setChoice((this.autoAppend && !_regExMode)) ; preselect the first item if *autoAppend* is enabled
 			} else _menu._submit(false)
 			(this._onEvent && this._onEvent.call(this, _hEdit, _input))
@@ -558,7 +557,7 @@
 			_setSz(_multiplier:=0) {
 				GuiControlGet, _pos, Pos, % _mHwnd:=this.HWND
 				(((_count:=this._itemCount) > this.maxSuggestions) && _count:=this.maxSuggestions) ; display up to *maxSuggestions* item(s)
-				_w := ((this._lastWidth:=_posw + _multiplier * 10) > 30) ? this._lastWidth : 30
+				_w := this._lastWidth := ((this._lastWidth:=_posw + _multiplier * 10) > 30) ? this._lastWidth : 30
 				_h := this._lastHeight := ++_count * this._lbListHeight
 				GuiControl, Move, % _mHwnd, % Format("w{1} h{2}", _w, _h)
 				this._show(true)
@@ -592,8 +591,7 @@
 				this._reset(), this._show(false)
 			}
 			_reset() {
-			SendMessage, 0x0184, 0, 0,, % this._owner.AHKID ; *LB_RESETCONTENT* removes all items from a list box
-			this._selectedItem := "", this._selectedItemIndex := this._itemCount := 0
+			this._selectedItem := "", this._selectedItemIndex := 0
 			}
 			_show(_boolean:=true, _params:="") {
 				GUI % this._parent . ":Show", % ((this.visible:=_boolean) ? "NA AutoSize " : "Hide ") . _params
