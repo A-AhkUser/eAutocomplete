@@ -194,8 +194,8 @@
 			(_opt.hasKey("autoAppend") && this.autoAppend:=!!_opt.autoAppend)
 			(_opt.hasKey("appendHapax") && this.appendHapax:=_opt.appendHapax)
 			; setters >>>>>>>>>>
-			(_opt.hasKey("learnAt") && this.learnAt:=_opt.learnAt)
 			(_opt.hasKey("startAt") && this.startAt:=_opt.startAt)
+			(_opt.hasKey("learnAt") && this.learnAt:=_opt.learnAt)
 			(_opt.hasKey("regexSymbol") && this.regexSymbol:=_opt.regexSymbol)
 			(_opt.hasKey("onEvent") && this.onEvent:=_opt.onEvent)
 			(_opt.hasKey("onSize") && this.onSize:=_opt.onSize)
@@ -424,7 +424,7 @@
 			if (_text <> _input) {
 				(_recursion.hasKey(_hEdit) || _recursion[_hEdit]:=0)
 				if (++_recursion[_hEdit] < 4)
-					return this._suggestWordList(_hEdit, _text), this._shouldNotSuggest := false
+					return this._suggestWordList(_hEdit), this._shouldNotSuggest := false
 				else _recursion[_hEdit] := 0
 			}
 
