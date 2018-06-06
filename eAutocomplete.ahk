@@ -95,6 +95,14 @@
 		return this._content
 		}
 	}
+	learnAt {
+		set {
+		return (ErrorLevel:=not (value > 0)) ? this["_learnAt"] : this["_learnAt"]:=value
+		}
+		get {
+		return this._learnAt
+		}
+	}
 	disabled {
 		set {
 			((this._enabled:=!this._shouldNotSuggest:=value) || this.menu._submit(false))
@@ -110,14 +118,6 @@
 		}
 		get {
 		return this._startAt
-		}
-	}
-	learnAt {
-		set {
-		return (ErrorLevel:=not (value > 0)) ? this["_learnAt"] : this["_learnAt"]:=value
-		}
-		get {
-		return this._learnAt
 		}
 	}
 	autoAppend := false
@@ -194,6 +194,7 @@
 			(_opt.hasKey("autoAppend") && this.autoAppend:=!!_opt.autoAppend)
 			(_opt.hasKey("appendHapax") && this.appendHapax:=_opt.appendHapax)
 			; setters >>>>>>>>>>
+			(_opt.hasKey("learnAt") && this.learnAt:=_opt.learnAt)
 			(_opt.hasKey("startAt") && this.startAt:=_opt.startAt)
 			(_opt.hasKey("regexSymbol") && this.regexSymbol:=_opt.regexSymbol)
 			(_opt.hasKey("onEvent") && this.onEvent:=_opt.onEvent)
@@ -207,7 +208,7 @@
 			(_opt.hasKey("onSelect") && _menu.onSelect:=_opt.onSelect) ; set the function object which handles the menu control's events
 
 		_fn := this._fnIf := this._hotkeysShouldFire.bind({_parent: _GUIID, HWND: _hEdit, menu: {_parent: _menu._parent}})
-		; once passed to the Hotkey command, an object is never deleted, hence the hrad-coded object
+		; once passed to the Hotkey command, an object is never deleted, hence the hard-coded object
 		Hotkey, If, % _fn
 			_fn1 := ObjBindMethod(_menu, "_setChoice", -1), _fn2 := ObjBindMethod(_menu, "_setChoice", +1)
 			Hotkey, Up, % _fn1
@@ -416,6 +417,16 @@
 				_menu._setChoice((this.autoAppend && !_regExMode)) ; preselect the first item if *autoAppend* is enabled
 			} else _menu._submit(false)
 			(this._onEvent && this._onEvent.call(this, _hEdit, _input))
+
+			static _recursion := {}
+			sleep, 45
+			this._getText(_text)
+			if (_text <> _input) {
+				(_recursion.hasKey(_hEdit) || _recursion[_hEdit]:=0)
+				if (++_recursion[_hEdit] < 4)
+					return this._suggestWordList(_hEdit, _text), this._shouldNotSuggest := false
+				else _recursion[_hEdit] := 0
+			}
 
 	return "", this._shouldNotSuggest := false
 	}
