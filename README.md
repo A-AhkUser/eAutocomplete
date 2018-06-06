@@ -109,8 +109,8 @@ Endow with word completion feature an existing edit control.
 | ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
 | ``menuBackgroundColor`` | Sets the background color of the menu. | `""`
 | ``menuFontName`` | Sets the font typeface for the menu. | `""`
-| ``menuFontOptions`` | Sets the size, style, and/or color for the menu. | `""`
-| ``useRTL`` | The language is intended to be display in right-to-left (RTL) mode as with Arabic or Hebrew. **(not yet implemented)**| `false`
+| ``menuFontOptions`` | Sets the font size, style, and/or color for the menu. | `""`
+| ``useRTL`` | The language is intended to be displayed in right-to-left (RTL) mode as with Arabic or Hebrew. **(not yet implemented)**| `false`
 
 ##
 ## Available properties
@@ -173,7 +173,7 @@ Creates a new autocomplete dictionary from a file's content, storing it directly
 |:-|:-|
 | ``_source`` | The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
 | ``_fileFullPath`` | The absolute path of the file to read. |
-| ``_delimiter`` [OPTIONAL] | The delimiter which seperates each item in the list. |
+| ``_delimiter`` [OPTIONAL] | The delimiter which seperates each item in the list. It defaults to linefeed (`` `n ``), which also correctly handles list whose lines end in CR+LF (`` `r`n ``). |
 ##
 ***
 ```AutoHotkey
