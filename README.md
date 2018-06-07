@@ -101,12 +101,13 @@ Endow with word completion feature an existing edit control.
 | ``onEvent``* | Associate a function object with the edit control. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
 | ``disabled``* | Determine whether or not the word completion feature should start off in an initially-disabled state. | `false`
 | ``startAt``* | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2`
-| ``autoAppend``* |  If it evaluates to `true` - and presuming that the last word partially entered is not a regular expression - the top most item in the drop-down list is pre-selected without the need to press the `Tab` key. | `false`
+| ``learnAt``* | Specify how many times a word should be typed before being actually stored by the script. | `4`
+| ``autoAppend``* | If it evaluates to `true` - and presuming that the last word partially entered is not a regular expression - the top most item in the drop-down list is pre-selected without the need to press the `Tab` key. | `false`
 | ``matchModeRegEx``* | If set to `true`, an occurrence of the `regExSymbol` character (see below) in the middle of a string will be interpreted not literally but as part of a regular expression. | `true`
 | ``regExSymbol``* | The character which is intended to  be interpreted - assuming `matchModeRegEx` is set to `true` - as a pattern, matching zero or more occurrences of any non-delimiter character (*e.g.* **v**\***o** matches **v**olcan**o**). | `*`
-| ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current word list. (note: **if the [source](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods) is a file, its content will be overwritten by the updated list at the time it is replaced by calling the `setSource` method or at the time the `dispose` method is called**)| `false`
+| ``appendHapax``* | If the value evaluates to `true`, *hapax legomena* will be appended to the current word list. (note: **if the [source](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#available-methods) is a file, its content will be overwritten by the updated list at the time it is replaced by calling the `setSource` method or at the time the `dispose` method is called**) `[1.0.21]` The `appendHapax` toggle option is meaningful as integer and specify the minimum number of characters the first onset of a word must contain to be appended to the current source's list. | `4`
 | ``onSelect``* | Associate a function object with the drop-down list. The value can be either the name of a function or a function reference. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling) | `""`
-| ``maxSuggestions``* | The maximum number of suggestions to display in the menu (without having to scrolling, if necesary). | `7`
+| ``maxSuggestions``* | The maximum number of suggestions to display in the menu, without having to scrolling, if necesary. (note: In order to later set/retrieve this value use the following: `A.menu.maxSuggestions`) | `7`
 | ``menuBackgroundColor`` | Sets the background color of the menu. | `""`
 | ``menuFontName`` | Sets the font typeface for the menu. | `""`
 | ``menuFontOptions`` | Sets the font size, style, and/or color for the menu. | `""`
@@ -125,6 +126,18 @@ A.focused
 ***
 ##### description:
 Contains `1` (`true`) if the autocomplete's host edit control is currently focused. Otherwise it contains `0` (`false`).
+##
+
+* **content**
+
+###
+***
+```AutoHotkey
+A.content
+```
+***
+##### description:
+The edit control's contents. Its value should be in any case the same as the one retrieved by `ControlGetText`. It has been made available since it is already used and available at any time, internally.
 ##
 ## Available methods
 
