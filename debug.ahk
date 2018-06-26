@@ -112,8 +112,8 @@ handleExit:
 	B.dispose()
 ExitApp
 
-test_onReplacement(_suggestionText) {
-return _suggestionText " from " A_ThisFunc
+test_onReplacement(_suggestionText, _tabIndex) {
+return _suggestionText "[" _tabIndex "] from " A_ThisFunc
 }
 test_onCompletionCompleted(_instance, _text, _isRemplacement) {
 ToolTip % A_ThisFunc "|" _instance.HWND+0 "," _text "[" _isRemplacement "]"
@@ -128,8 +128,8 @@ test_onSelectionLookUp(_value, _tabIndex) {
 return _value "[" _tabIndex "] from " A_ThisFunc
 }
 
-test_onReplacement2(_suggestionText) {
-return _suggestionText " from " A_ThisFunc
+test_onReplacement2(_suggestionText, _tabIndex) {
+return _suggestionText "[" _tabIndex "] from " A_ThisFunc
 }
 test_onCompletionCompleted2(_instance, _text, _isRemplacement) {
 ToolTip % A_ThisFunc "|" _instance.HWND+0 "," _text "[" _isRemplacement "]"
