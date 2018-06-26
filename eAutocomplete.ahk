@@ -351,7 +351,7 @@
 		eAutocomplete._eventObjects[ this ] := ""
 		}
 		__Delete() {
-			MsgBox % A_ThisFunc
+			; MsgBox % A_ThisFunc
 			GUI % this._parent . ":Destroy"
 			DllCall("SelectObject", "UPtr", this._hDC, "UPtr", this._hFont, "UPtr")
 			DllCall("ReleaseDC", "UPtr", this._HWND, "UPtr", this._hDC)
@@ -473,9 +473,9 @@
 			this._source.update()
 		this._dropDownList._dispose()
 	}
-	__Delete() {
-		MsgBox % A_ThisFunc
-	}
+	; __Delete() {
+		; MsgBox % A_ThisFunc
+	; }
 	; ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 	; ■■■■■■■■■■■■■■■■■■■■ PUBLIC BASE OBJECT METHODS ■■■■■■■■■■■■■
 	; ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -573,8 +573,8 @@
 			eAutocomplete._hotkeys[ _ifFuncObj, "Escape" ] := ObjBindMethod(this, "_suggest", false)
 			eAutocomplete._hotkeys[ _ifFuncObj, "Up" ] := ObjBindMethod(_dropDownList, "_selectUp")
 			eAutocomplete._hotkeys[ _ifFuncObj, "Down" ] := ObjBindMethod(_dropDownList, "_selectDown")
-			eAutocomplete._hotkeys[ _ifFuncObj, "Right" ] := ObjBindMethod(this, "_completionDataLookUp", 2)
-			eAutocomplete._hotkeys[ _ifFuncObj, "+Right" ] := ObjBindMethod(this, "_completionDataLookUp", 3)
+			eAutocomplete._hotkeys[ _ifFuncObj, "Right" ] := ObjBindMethod(this, "_completionDataLookUp", 1)
+			eAutocomplete._hotkeys[ _ifFuncObj, "+Right" ] := ObjBindMethod(this, "_completionDataLookUp", 2)
 			eAutocomplete._hotkeys[ _ifFuncObj, "Tab" ] := ObjBindMethod(this, "_complete", "Tab")
 			eAutocomplete._hotkeys[ _ifFuncObj, "+Tab" ] := ObjBindMethod(this, "_complete", "Tab")
 			eAutocomplete._hotkeys[ _ifFuncObj, "Enter" ] := ObjBindMethod(this, "_complete", "Enter")
