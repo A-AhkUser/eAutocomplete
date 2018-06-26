@@ -17,8 +17,8 @@
 		__New(__push:="", __remove:="") {
 		ObjRawSet(this, "__push", __push), ObjRawSet(this, "__remove", __remove)
 		}
-		__Get(_k, _param) {
-		return eAutocomplete._EventHandling.table[_k, _param]
+		__Get(_params*) {
+		return eAutocomplete._EventHandling.table[_params*]
 		}
 		__Set(_k, _params*) {
 			if (this.__push) {
@@ -209,8 +209,10 @@
 			else if (_k = "transparency") {
 				if _v between 1 and 255
 				{
+					_hLastFoundWindow := WinExist()
 					GUI % this._parent ":+LastFound"
 					WinSet, Transparent, % this._transparency:=_v
+					WinExist("ahk_id " . _hLastFoundWindow)
 				}
 			return this._transparency
 			}
@@ -349,7 +351,7 @@
 		eAutocomplete._eventObjects[ this ] := ""
 		}
 		__Delete() {
-			; MsgBox % A_ThisFunc
+			MsgBox % A_ThisFunc
 			GUI % this._parent . ":Destroy"
 			DllCall("SelectObject", "UPtr", this._hDC, "UPtr", this._hFont, "UPtr")
 			DllCall("ReleaseDC", "UPtr", this._HWND, "UPtr", this._hDC)
@@ -449,17 +451,19 @@
 	; ■■■■■■■■■■■■■■■■■■■■ PUBLIC METHODS ■■■■■■■■■■■■■■■■■■■■■■
 	; ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 	dispose() {
-		this.disabled := true
 		if not (eAutocomplete._instances.hasKey(this._HWND))
 			return
+		this.disabled := true
 		eAutocomplete._instances.delete(this._HWND)
-		for _ in eAutocomplete._instances, _noMoreInstance := true {
+		for _, _instance in eAutocomplete._instances, _noMoreInstance := true, _noMoreFromProcess := true {
 			_noMoreInstance := false
-		break
+			if (_instance._idProcess = this._idProcess) {
+				_noMoreFromProcess := false
+			break
+			}
 		}
 		(_noMoreInstance && eAutocomplete._winEventHookFunctions[ "DWORD" 0 ]:="")
-		if not (eAutocomplete._winEventHookFunctions[ "DWORD" this._idProcess ])
-			eAutocomplete._winEventHookFunctions[ "DWORD" this._idProcess ] := ""
+		(_noMoreFromProcess && eAutocomplete._winEventHookFunctions[ "DWORD" this._idProcess ]:="")
 		for _, _ifFuncObj in this._hkIfFuncObjects
 			eAutocomplete._hotkeys[ _ifFuncObj ] := ""
 		eAutocomplete._eventObjects[ this ] := ""
@@ -468,10 +472,9 @@
 		if (this._learnWords)
 			this._source.update()
 		this._dropDownList._dispose()
-		this._dropDownList := ""
 	}
 	__Delete() {
-		; MsgBox % A_ThisFunc
+		MsgBox % A_ThisFunc
 	}
 	; ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 	; ■■■■■■■■■■■■■■■■■■■■ PUBLIC BASE OBJECT METHODS ■■■■■■■■■■■■■
@@ -558,7 +561,7 @@
 		if not (eAutocomplete._winEventHookFunctions[ "DWORD" this._idProcess ]) {
 			eAutocomplete._winEventHookFunctions[ "DWORD" this._idProcess, _HWINEVENTHOOK, 0x800E, 0x800E ]
 				:= RegisterCallback("eAutocomplete._objectValueChangeEventMonitor")
-			eAutocomplete._winEventHookFunctions[ "DWORD" this._idProcess, _HWINEVENTHOOK, 0x000A, 0x000B ]
+			eAutocomplete._winEventHookFunctions[ "DWORD" this._idProcess, _HWINEVENTHOOK, 0x000A, 0x000A ]
 				:= RegisterCallback("eAutocomplete._systemMoveSizeEventMonitor")
 		}
 		if not (eAutocomplete._winEventHookFunctions[ "DWORD" 0 ])
@@ -573,7 +576,9 @@
 			eAutocomplete._hotkeys[ _ifFuncObj, "Right" ] := ObjBindMethod(this, "_completionDataLookUp", 2)
 			eAutocomplete._hotkeys[ _ifFuncObj, "+Right" ] := ObjBindMethod(this, "_completionDataLookUp", 3)
 			eAutocomplete._hotkeys[ _ifFuncObj, "Tab" ] := ObjBindMethod(this, "_complete", "Tab")
+			eAutocomplete._hotkeys[ _ifFuncObj, "+Tab" ] := ObjBindMethod(this, "_complete", "Tab")
 			eAutocomplete._hotkeys[ _ifFuncObj, "Enter" ] := ObjBindMethod(this, "_complete", "Enter")
+			eAutocomplete._hotkeys[ _ifFuncObj, "+Enter" ] := ObjBindMethod(this, "_complete", "Enter")
 
 	return eAutocomplete._instances[_hEdit] := this
 	}
@@ -610,8 +615,6 @@
 		return _wrapper
 	}
 	__hapax(_match, _len) {
-	; static _i := 0
-	; ToolTip % ++_i
 		if (!this._collectWords || (_len < this._minWordLength))
 			return
 		_hapaxLegomena := this._source.hapaxLegomena
@@ -685,13 +688,13 @@
 	CoordMode, ToolTip, Screen
 		_x := _dropDownList._lastX + 10
 		_y := _dropDownList._lastY + (_dropDownList._selection.offsetTop - 0.5) * _dropDownList._itemHeight
-		ToolTip % this._onSuggestionLookUp.call(this._completionData.1, _tabIndex), % _x, % _y
+		ToolTip % this._onSuggestionLookUp.call(this._completionData.1, _tabIndex + 1), % _x, % _y
 		KeyWait, Right
 		ToolTip
 	CoordMode, ToolTip, % _coordModeToolTip
 	}
 	__onSuggestionLookUp(_value, _tabIndex) {
-	return this._completionData[_tabIndex]
+	return this._completionData[ _tabIndex + 1 ]
 	}
 
 	_complete(_completionKey) {
@@ -704,7 +707,7 @@
 		_start := this._pendingWord.match.pos - 1, _value := this._completionData.1
 		if (_isLongPress) {
 			this._setSelection(_start + StrLen(_value), _start)
-			_value := this._onReplacement.call(_value)
+			_value := this._onReplacement.call(_value, 1 + (A_ThisHotkey <> _completionKey))
 			this._rawPaste(_value)
 		}
 		KeyWait % _completionKey
@@ -715,8 +718,8 @@
 		} else (this._expandWithSpace && this._rawSend("{Space}"))
 		((_fn:=this._onCompletionCompleted) && _fn.call(this, _value, _isLongPress))
 	}
-	__onReplacement(_value) {
-	return this._completionData.3
+	__onReplacement(_value, _tabIndex) {
+	return this._completionData[ _tabIndex + 1 ]
 	}
 
 	; -----------------------------------------------------------------------------------------------
@@ -844,17 +847,13 @@
 		}
 		(eAutocomplete._lastFoundInstance && eAutocomplete._instances[eAutocomplete._lastFoundInstance]._suggest(false))
 		eAutocomplete._lastFoundInstance := (eAutocomplete._instances.hasKey(_hwnd)) ? _hwnd : 0x0
-		; _lastFoundInstance ~= focused
 	}
 	_systemMoveSizeEventMonitor(_event, _hwnd) {
-		if (_event = 0x000A) {
 			for _each, _instance in eAutocomplete._instances {
 				if (_instance._parent = _hwnd) {
 					(_instance._dropDownList._visible && _instance._suggest(false))
-				; break
 				}
 			}
-		}
 	}
 
 }
