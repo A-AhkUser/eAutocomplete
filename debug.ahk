@@ -62,11 +62,11 @@ A := eAutocomplete.create(GUIID, options)
 options2 :=
 (LTrim Join C
 	{
-		autoSuggest: false,
+		autoSuggest: true,
 		collectAt: 2,
 		collectWords: true,
 		disabled: false,
-		editOptions: "w300",
+		editOptions: "x320 y10 w300",
 		endKeys: "",
 		expandWithSpace: false,
 		learnWords: false,
@@ -91,7 +91,7 @@ options2 :=
 	}
 )
 B := eAutocomplete.create(GUIID, options2)
-GUI, Show, AutoSize, eAutocomplete
+GUI, Show, h500, eAutocomplete
 OnExit, handleExit
 return
 
