@@ -40,14 +40,14 @@ The library enables users to quickly find, get info tips and select from a dynam
 
 ***
 
-The library enables users, as typing in an Edit control, to quickly find and select from a dynamic pre-populated list of suggestions and, by this means, to expand/replace partially entered strings into/by complete strings. When a user starts to type in the edit control, the script starts searching for entries that match and should display complete strings to choose from, based both on earlier typed letters and the content of a [custom list](#custom-databases).
+The library enables users, as typing in an Edit control, to quickly find and select from a dynamic pre-populated list of suggestions and, by this means, to expand/replace partially entered strings into/by complete strings. When a user starts to type in the edit control, the script starts searching for entries that match and should display complete strings to choose from, based both on earlier typed letters and the content of a [custom list](#custom-databases). If the host edit control is a single-line edit control, the list of choices is displayed beneath the control, in the manner of a combobox.
 
 * Use `Tab` to select the top most suggestion and both the `Down` and `Up` arrow keys to select from the list all other available suggestions.
 * Press the `Tab` key to complete a pending word with the selected suggestion.
-* Long press `Tab`/`Shift+Tab` to replace the current partial string by respectively the first/second of the selected [suggestion's own replacement strings](#custom-databases) (or, alternatively, by a [dynamic string](#event-handling)).
+* Long press `Tab`/`Shift+Tab` to replace the current partial string by respectively the first/second of the selected [suggestion's own replacement strings](#custom-databases) (or, alternatively, by a [dynamic string](#onreplacement-callback)).
 * The `Enter` key is functionally equivalent to the `Tab` one except that it also moves the caret to the next line at the same time.
 * The drop-down list can be closed by pressing the `Esc` key.
-* Use the `Right`/`Shift+Right` hotkeys to look up respectively the first/second of the selected [suggestion's associated data](#custom-databases) (or, alternatively, [dynamic data](#event-handling)). When applicable, data appear in a tooltip, near the selected suggestion.
+* Press and hold the `Right`/`Shift+Right` hotkeys to look up respectively the first/second of the selected [suggestion's associated data](#custom-databases) (or, alternatively, [dynamic data](#onsuggestionlookup-callback)). When applicable, data appear in a tooltip, near the selected suggestion.
 * If `autoSuggest` is disabled, `Down` displays the drop-down list, assuming one or more suggestions are available (see also: [options](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options)).
 
 
@@ -262,7 +262,7 @@ eA.onSuggestionLookup := Func("mySuggestionLookupEventMonitor")
 ```
 ***
 
- Associate a function with the `suggestionLookUp` event. This would cause the function to be launched automatically whenever the user attempts to query an info tip from the selected suggestion by pressing either the `Right` key (querying the first suggestion's associated *datum*) or the `Shift+Right` hotkey (querying the second suggestion's associated *datum*). The return value of the callback will be used as the actual text displayed in the tooltip. This can be used to allow dynamic description lookups such as when description strings come from a dictionary API, as an example.
+ Associate a function with the `suggestionLookUp` event. This would cause the function to be launched automatically whenever the user attempts to query an info tip from the selected suggestion by pressing and holding either the `Right` key (querying the first suggestion's associated *datum*) or the `Shift+Right` hotkey (querying the second suggestion's associated *datum*). The return value of the callback will be used as the actual text displayed in the tooltip. This can be used to allow dynamic description lookups such as when description strings come from a dictionary API, as an example.
 
  The function can optionally accept the following parameters:</br>
 ``infoTipText := mySuggestionLookupEventMonitor(_suggestionText, _tabIndex)``
