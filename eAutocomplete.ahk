@@ -1,87 +1,73 @@
 ﻿Class eAutocomplete {
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	; ~~~~~~~~~~~~~~~~~~~~ PRIVATE BASE OBJECT PROPERTIES ~~~~~
-	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	static _instances := {}
-	static _winEventHookFunctions := new eAutocomplete._EventHandling("_setWinEventHook", "_unhookWinEvent")
-	static _hotkeys := new eAutocomplete._EventHandling("_setHotkey", "_unregisterHotkey")
-	static _eventObjects := new eAutocomplete._EventHandling("_setEventObject", "_unregisterEventObject")
-	static _bypassToggle := false
-	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PRIVATE NESTED CLASSES ~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Class _EventHandling {
+	Class _Meta {
 
 		static table := {}
 
-		__New(__push:="", __remove:="") {
-		ObjRawSet(this, "__push", __push), ObjRawSet(this, "__remove", __remove)
+		__New(_baseObject) {
+		ObjRawSet(this, "baseObject", eAutocomplete[_baseObject])
 		}
 		__Get(_params*) {
-		return eAutocomplete._EventHandling.table[_params*]
+		return eAutocomplete._Meta.table[_params*]
 		}
 		__Set(_k, _params*) {
-			if (this.__push) {
-				if (eAutocomplete._EventHandling.table.hasKey(_k)) {
-					if ((_params.length() = 1) && (_params.1 = "")) {
-						eAutocomplete._EventHandling.table.delete(_k)
-					return
-					}
-				} else {
-					_inst := new eAutocomplete._EventHandling(, this.__remove), ObjRawSet(_inst, "_k", _k)
-					eAutocomplete._EventHandling.table[_k] := _inst
+			if not (eAutocomplete._Meta.table.hasKey(_k)) {
+				eAutocomplete._Meta.table[_k] := {}
+			} else if ((_params.length() = 1) && (_params.1 = "")) {
+				for _index, _inst in eAutocomplete._Meta.table[_k] {
+					_inst._delete(_k)
 				}
-				_param := _params.removeAt(1), eAutocomplete[ this.__push ].call("", _k, _param, _params*)
-				eAutocomplete._EventHandling.table[_k].push(_param)
-			return _params.pop()
+				return "", eAutocomplete._Meta.table.delete(_k)
 			}
-			return
-		}
-		__Delete() {
-			if (this._k && this.__remove) {
-				for _key, _value in this {
-					if _key is integer
-						eAutocomplete[ this.__remove ].call("", this._k, _value)
-				}
-			}
+			_baseObject := ObjRawGet(this, "baseObject"), eAutocomplete._Meta.table[_k].push(new _baseObject(_k, _params*))
+		return _params.pop()
 		}
 
 	}
 		; ====================================================================================
-		_setEventObject(_source, ByRef _eventName, _callback) {
-			if (_callback = "") {
-				return eAutocomplete._unregisterEventObject(_source, _eventName)
-			} if (IsFunc(_callback)) {
-				((_callback.minParams = "") && _callback:=Func(_callback))
-				return _source[_eventName] := _callback
-			} else if (IsObject(_callback)) {
-				return _source[_eventName] := _callback
-			} else return _source[_eventName]
+		Class _EventObject {
+			__New(_source, _eventName, _callback) {
+				this.eventName := _eventName
+				if (_callback = "") {
+					this._delete(_source, _eventName)
+				} if (IsFunc(_callback)) {
+					((_callback.minParams = "") && _callback:=Func(_callback))
+					_source[_eventName] := _callback
+				} else if (IsObject(_callback)) {
+					_source[_eventName] := _callback
+				} else _callback := _source[_eventName]
+			}
+			_delete(_k) {
+			_k[ this.eventName ] := ""
+			}
 		}
-		_setHotkey(_ifFuncObj, ByRef _keyName, _func) {
-			Hotkey, If, % _ifFuncObj
-				Hotkey % _keyName, % _func, On
-			Hotkey, If
+		Class _Hotkey {
+			__New(_ifFuncObj, _keyName, _func) {
+				this.keyName := _keyName
+				Hotkey, If, % _ifFuncObj
+					Hotkey % _keyName, % _func, On
+				Hotkey, If
+			}
+			_delete(_k) {
+				static _f := Func("WinActive")
+				Hotkey, If, % _k
+					Hotkey % this.keyName, % _f, Off
+				Hotkey, If
+			}
 		}
-		_setWinEventHook(_idProcess, ByRef _HWINEVENTHOOK, _eventMin, _eventMax, _lpfnWinEventProc) {
-			_HWINEVENTHOOK := DllCall("SetWinEventHook"
-									, "Uint", _eventMin, "Uint", _eventMax
-									, "Ptr", 0, "Ptr", _lpfnWinEventProc
-									, "Uint", LTrim(_idProcess, "IDPROCESS")
-									, "Uint", 0, "Uint", 0)
-		}
-		_unregisterEventObject(_source, _eventName) {
-			return _source[_eventName] := ""
-		}
-		_unregisterHotkey(_ifFuncObj, _keyName) {
-			_f := Func("WinActive")
-			Hotkey, If, % _ifFuncObj
-				Hotkey % _keyName, % _f, Off
-			Hotkey, If
-		}
-		_unhookWinEvent(_idProcess, _HWINEVENTHOOK) {
-			_v := DllCall("UnhookWinEvent", "Ptr", _HWINEVENTHOOK)
-		return _v
+		Class _WinEventHook {
+			__New(_idProcess, _eventMin, _eventMax, _lpfnWinEventProc) {
+				this.HWINEVENTHOOK := DllCall("SetWinEventHook"
+										, "Uint", _eventMin, "Uint", _eventMax
+										, "Ptr", 0, "Ptr", _lpfnWinEventProc
+										, "Uint", _idProcess
+										, "Uint", 0, "Uint", 0)
+			}
+			_delete(_k) {
+			DllCall("UnhookWinEvent", "Ptr", this.HWINEVENTHOOK)
+			}
 		}
 		; ====================================================================================
 
@@ -426,6 +412,14 @@
 
 	}
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	; ~~~~~~~~~~~~~~~~~~~~ PRIVATE BASE OBJECT PROPERTIES ~~~~~
+	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	static _instances := {}
+	static _winEventHookFunctions := new eAutocomplete._Meta("_WinEventHook")
+	static _hotkeys := new eAutocomplete._Meta("_Hotkey")
+	static _eventObjects := new eAutocomplete._Meta("_EventObject")
+	static _bypassToggle := false
+	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PUBLIC PROPERTIES ~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		static _properties :=
@@ -529,8 +523,8 @@
 			break
 			}
 		}
-		(_noMoreInstance && eAutocomplete._winEventHookFunctions[ "IDPROCESS" 0 ]:="")
-		(_noMoreFromProcess && eAutocomplete._winEventHookFunctions[ "IDPROCESS" this._idProcess ]:="")
+		(_noMoreInstance && eAutocomplete._winEventHookFunctions[ 0 ]:="")
+		(_noMoreFromProcess && eAutocomplete._winEventHookFunctions[ this._idProcess ]:="")
 		for _, _ifFuncObj in this._hkIfFuncObjects
 			eAutocomplete._hotkeys[ _ifFuncObj ] := ""
 		eAutocomplete._eventObjects[ this ] := ""
@@ -631,15 +625,14 @@
 		((this._onSuggestionLookUp = "") && this.onSuggestionLookUp:="")
 		((this._onReplacement = "") && this.onReplacement:="")
 
-		_HWINEVENTHOOK := ""
-		if not (eAutocomplete._winEventHookFunctions[ "IDPROCESS" this._idProcess ]) {
-			eAutocomplete._winEventHookFunctions[ "IDPROCESS" this._idProcess, _HWINEVENTHOOK, 0x800E, 0x800E ]
+		if not (eAutocomplete._winEventHookFunctions[ this._idProcess ]) {
+			eAutocomplete._winEventHookFunctions[ this._idProcess, 0x800E, 0x800E ]
 				:= RegisterCallback("eAutocomplete._objectValueChangedEventMonitor")
-			eAutocomplete._winEventHookFunctions[ "IDPROCESS" this._idProcess, _HWINEVENTHOOK, 0x000A, 0x000A ]
+			eAutocomplete._winEventHookFunctions[ this._idProcess, 0x000A, 0x000A ]
 				:= RegisterCallback("eAutocomplete._systemMoveSizeEventMonitor")
 		}
-		if not (eAutocomplete._winEventHookFunctions[ "IDPROCESS" 0 ])
-			eAutocomplete._winEventHookFunctions[ "IDPROCESS" 0, _HWINEVENTHOOK, 0x8005, 0x8005 ]
+		if not (eAutocomplete._winEventHookFunctions[ 0 ])
+			eAutocomplete._winEventHookFunctions[ 0, 0x8005, 0x8005 ]
 				:= RegisterCallback("eAutocomplete._focusEventMonitor")
 
 		this._hkIfFuncObjects := []
