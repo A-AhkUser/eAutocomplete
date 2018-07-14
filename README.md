@@ -65,7 +65,6 @@ An instance can optionally learn words at their first onset (or simply collect t
 - Load the library (`\eAutocomplete.ahk`) by means of the [#Include directive](https://www.autohotkey.com/docs/commands/_Include.htm).
 - You can either [create](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#create-method) an `eAutocomplete` control (that is, add a custom edit control to an existing ahk GUI window) or endow with word completion feature an existing edit control (*e.g* *Notepad*'s one) by means of the [attach method](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#attach-method) - both methods returning a new instance of `eAutocomplete`.
 
-##
 ## Create base method
 ***
 
@@ -80,8 +79,6 @@ eA := eAutocomplete.create(_GUIID, _options:="")
 | ``_GUIID`` [HWND] | The host [window's HWND](https://www.autohotkey.com/docs/misc/WinTitle.htm#ahk_id). |
 | ``_options`` *OPTIONAL* [OBJECT] | An [object](https://www.autohotkey.com/docs/Objects.htm#Usage_Associative_Arrays). If applicable, the [following keys](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options) are processed. |
 
-
-##
 ## Attach base method
 ***
 
@@ -96,7 +93,6 @@ eA := eAutocomplete.attach(_hEdit, _options:="")
 | ``_hEdit`` [HWND] | The host edit [control's HWND](https://www.autohotkey.com/docs/commands/ControlGet.htm#Hwnd). |
 | ``_options`` *OPTIONAL* [OBJECT] | An [object](https://www.autohotkey.com/docs/Objects.htm#Usage_Associative_Arrays). If applicable, the [following keys](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options) are processed. |
 
-##
 ### Options
 ***
 
@@ -134,7 +130,6 @@ eA := eAutocomplete.attach(_hEdit, _options:="")
 |  |  |  |
 | ``useRTL``* | The language is intended to be displayed in right-to-left (RTL) mode as with Arabic or Hebrew. **(not yet implemented)** | `false` |
 
-##
 ### Custom databases
 ***
 
@@ -151,7 +146,6 @@ Both the second and the third items may be omitted (that is, a line may consist 
 
 *note: A linefeed-separated list of a TSV-formatted lines can be built in particular from you office suite - from a spreadsheet by saving it as... `.csv` (and specifying a tabulation as field separator)*.
 
-##
 ## Available methods
 ***
 
@@ -160,38 +154,34 @@ Both the second and the third items may be omitted (that is, a line may consist 
 
 *Both methods throw an exception upon failure*
 
-###
+##
 ***
 ```Python
 eAutocomplete.setSourceFromVar(_sourceName, _list:="")
 ```
 ***
 
- ###### Creates a new autocomplete dictionary from an input string, storing it directly in the base object.
+###### Creates a new autocomplete dictionary from an input string, storing it directly in the base object.
 
 | parameter | description |
 |:-|:-|
 | ``_source`` | The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
 | ``_list`` [OPTIONAL] | The list as string of characters. |
 
-###
-
-</br>
-
+##
 ***
 ```Python
 eAutocomplete.setSourceFromVar(_sourceName, _fileFullPath)
 ```
 ***
 
- ###### Creates a new autocomplete dictionary from a file's content, storing it directly in the base object.
+###### Creates a new autocomplete dictionary from a file's content, storing it directly in the base object.
 
 | parameter | description |
 |:-|:-|
 | ``_source`` | The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
 | ``_fileFullPath`` | The absolute path of the file to read (note: **its content will be overwritten and replaced by an indexed list of suggestion items, either at the time the source is replaced by a new one by setting the eponymous property or at the time the `dispose` method is called**). |
 
-##
 ## Dispose method
 ***
 
@@ -202,7 +192,6 @@ eA.dispose()
 
  Releases all circular references by unregistering instance's own hotkeys and event handlers. It also removes instance's own event hook functions (the class hook a few events instead of querying windows objects when needed). A script should call the `dispose` method, at the latest at the time the script exits. Moreover, calling `dispose` ensures that collected words, if any, are stored into the appropriate database, as the case may be. Once the method has been called, any further call has no effect.
 
-##
 ## Event handling
 ***
 
@@ -226,14 +215,13 @@ eA.onValueChanged := Func("myValueChangedEventMonitor")
 
 Executes a custom function each time the content of the edit control is altered. It is called only after the internal autocomplete search engine actually provided suggestions, if any (as an indicator, it benchmarked [1.1.00+] at 90ms ~ 150ms when testing it using a word list with a overall result for the first type letter of approximately 355000 matching items; otherwise, it is nearly instantaneous). In any event, the callback should be designed to complete quickly. Naturally, **the `onValueChanged` callback should not itself change the value of the host edit control**!
 
- The function can optionally accept the following parameters:</br>
+- The function can optionally accept the following parameters:
 ``myValueChangedEventMonitor(this, _hEdit, _content)``
 
 | parameter | description |
-|:-|:-|
+| :---: | :---: |
 | ``_hEdit`` | Contains the edit control's HWND. |
 | ``_content`` | Contains the edit control's current content. |
-##
 
 ###### onCompletionCompleted callback
 
@@ -245,14 +233,13 @@ eA.onCompletionCompleted := Func("myCompletionCompletedEventMonitor")
 
  Executes a custom function whenever the user has performed a completion or a replacement by pressing/long pressing either the `Tab` or the `Enter` key.
 
- The function can optionally accept the following parameters:</br>
+- The function can optionally accept the following parameters:
 ``myCompletionCompletedEventMonitor(this, _completeString, _isReplacement)``
 
 | parameter | description |
-|:-|:-|
+| :---: | :---: |
 | ``_completeString`` | Contains the text of the complete string. |
 | ``_isReplacement`` | A boolean value which determines whether or not a remplacement has been performed beforehand. |
-##
 
 ###### onSuggestionLookup callback
 
@@ -264,14 +251,13 @@ eA.onSuggestionLookup := Func("mySuggestionLookupEventMonitor")
 
  Associate a function with the `suggestionLookUp` event. This would cause the function to be launched automatically whenever the user attempts to query an info tip from the selected suggestion by pressing and holding either the `Right` key (querying the first suggestion's associated *datum*) or the `Shift+Right` hotkey (querying the second suggestion's associated *datum*). The return value of the callback will be used as the actual text displayed in the tooltip. This can be used to allow dynamic description lookups such as when description strings come from a dictionary API, as an example.
 
- The function can optionally accept the following parameters:</br>
+- The function can optionally accept the following parameters:
 ``infoTipText := mySuggestionLookupEventMonitor(_suggestionText, _tabIndex)``
 
 | parameter | description |
-|:-|:-|
+| :---: | :---: |
 | ``_suggestionText`` | The text of the selected suggestion, as visible in the drop-down list. |
 | ``_tabIndex`` | If a variable is specified, it is assigned a number indicating the index of the suggestion's associated *datum*. |
-##
 
 ###### onReplacement callback
 
@@ -283,14 +269,13 @@ eA.onReplacement := Func("myReplacementEventMonitor")
 
  Associate a function with the `replacement` event. This would cause the function to be launched automatically whenever the user is about to perform a replacement by long pressing either the `Tab`/`Enter` key (first suggestion's associated replacement string) or the `Shift+Tab`/`Shift+Enter` hotkey (second suggestion's associated replacement string). The event fires before the replacement string has been actually sent to the edit control - the return value of the function being actually used as the actual replacement string. This can be used to allow dynamic replacements, such as when replacement strings come from a translation API, as an example.
 
- The function can optionally accept the following parameters:</br>
-``replacementText := myReplacementEventMonitor(_suggestionText)``
+- The function can optionally accept the following parameters:
+``replacementText := myReplacementEventMonitor(_suggestionText, _tabIndex)``
 
 | parameter | description |
-|:-|:-|
+| :---: | :---: |
 | ``_suggestionText`` | The text of the selected suggestion, as visible in the drop-down list. |
 | ``_tabIndex`` | If a variable is specified, it is assigned a number indicating the index of the suggestion's associated replacement string. |
-##
 
 ###### onSize callback
 
@@ -302,11 +287,11 @@ eA.onSize := Func("mySizeEventMonitor")
 
  Associate a function with the little UI handle which allows resizing by the user and with which is endowed an edit control when it has been created using the `create` method and had `+Resize` listed in `editOptions`. The function is executed automatically whenever the user resizes the edit control by its means. The function can prevent resizing by returning a non-zero integer.
 
- The function can optionally accept the following parameters:</br>
+- The function can optionally accept the following parameters:
 ``preventResizing := mySizeEventMonitor(_parent, this, _w, _h, _mousex, _mousey)``
 
 | parameter | description |
-|:-|:-|
+| :---: | :---: |
 | ``_parent`` | The name, number or HWND of the GUI itself. |
 | ``_w`` | The current edit control's width. |
 | ``_h`` | The current edit control's height. |
