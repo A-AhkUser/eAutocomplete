@@ -7,6 +7,13 @@ The library enables users to quickly find, get info tips and select from a dynam
 #### Download the [latest release](https://github.com/A-AhkUser/eAutocomplete/releases)
 > note: **Unlike the latest release, the master branch is NOT considered as fully tested on each commit.**
 
+### Thanks to:
+
+- **jeeswg** and **AlphaBravo** for sharing their knowlegde.
+- **brutus_skywalker** for his valuable suggestions on how to make more ergonomic and user-friendly the common features provided by the script via the use of keyboard shortcuts.
+- **G33kDude (GeekDude)** and **ManiacDC** whose respective works - respectively [CQT.AutoComplete.ahk](https://github.com/G33kDude/CodeQuickTester/blob/master/lib/CQT.AutoComplete.ahk) and [TypingAid](https://github.com/ManiacDC/TypingAid/) - served as models for this one.
+
+
 ## Table of Contents
 
 <ul>
@@ -33,7 +40,7 @@ The library enables users to quickly find, get info tips and select from a dynam
 
 <table align="center">
 	<tr>
-		<td><img src="https://raw.githubusercontent.com/A-AhkUser/AHK-forums/master/eAutocomplete/eAutocomplete.gif" /></td>
+		<td><img src="https://raw.githubusercontent.com/A-AhkUser/AHK-forums/master/eAutocomplete/eAutocomplete_cb.png" /></td>
 		<td><img src="https://raw.githubusercontent.com/A-AhkUser/AHK-forums/master/eAutocomplete/eAutocomplete2.gif" /></td>
 	</tr>
 </table>
@@ -154,7 +161,6 @@ Both the second and the third items may be omitted (that is, a line may consist 
 
 *Both methods throw an exception upon failure*
 
-##
 ***
 ```Python
 eAutocomplete.setSourceFromVar(_sourceName, _list:="")
@@ -168,10 +174,9 @@ eAutocomplete.setSourceFromVar(_sourceName, _list:="")
 | ``_source`` | The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
 | ``_list`` [OPTIONAL] | The list as string of characters. |
 
-##
 ***
 ```Python
-eAutocomplete.setSourceFromVar(_sourceName, _fileFullPath)
+eAutocomplete.setSourceFromFile(_sourceName, _fileFullPath)
 ```
 ***
 
@@ -297,3 +302,7 @@ eA.onSize := Func("mySizeEventMonitor")
 | ``_h`` | The current edit control's height. |
 | ``_mousex`` | The current position (abscissa) of the mouse cursor (coordinate is relative to the active window's client area). |
 | ``_mousey`` | The current position (ordinate) of the mouse cursor (coordinate is relative to the active window's client area). |
+
+### Licence
+
+[Unlicence](LICENSE)
