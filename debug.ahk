@@ -3,7 +3,7 @@
 SetWorkingDir % A_ScriptDir
 SendMode, Input
 #Warn
-; Windows 8.1 64 bit - Autohotkey v1.1.28.00 32-bit Unicode
+; Windows 8.1 64 bit - Autohotkey v1.1.29.01 32-bit Unicode
 
 #Include %A_ScriptDir%\eAutocomplete.ahk
 
