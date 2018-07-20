@@ -2,36 +2,33 @@
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PRIVATE NESTED CLASSES ~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Class _Meta {
+	Class _Proxy extends eAutocomplete._Functor {
 
-		static table := {}
+		static instances := {}
 
-		__New(_baseObject) {
-		ObjRawSet(this, "baseObject", eAutocomplete[_baseObject])
-		}
-		__Get(_params*) {
-		return eAutocomplete._Meta.table[_params*]
-		}
-		__Set(_k, _params*) {
-			if not (eAutocomplete._Meta.table.hasKey(_k)) {
-				eAutocomplete._Meta.table[_k] := {}
-			} else if ((_params.length() = 1) && (_params.1 = "")) {
-				for _index, _inst in eAutocomplete._Meta.table[_k] {
-					_inst._delete(_k)
-				}
-				return "", eAutocomplete._Meta.table.delete(_k)
+		call(_k, _params*) {
+			if not (this.base.instances.hasKey(_k)) {
+				this.base.instances[_k] := {}
+			} else if not (_params.length()) {
+				return "", this.base.instances.delete(_k)
 			}
-			_baseObject := ObjRawGet(this, "baseObject"), eAutocomplete._Meta.table[_k].push(new _baseObject(_k, _params*))
-		return _params.pop()
+			_subClass := eAutocomplete[ SubStr(this.__class, InStr(this.__class, ".",, 0) + 1) ]
+			return _inst := new _subClass(_k, _params*), this.base.instances[_k].push(_inst)
 		}
 
 	}
+	Class _Functor { ; https://autohotkey.com/boards/viewtopic.php?f=7&t=38151
+		__Call(_newEnum, _k, _params*) {
+			if (_k <> "")
+				return this.call(_k, _params*)
+		}
+	}
 		; ====================================================================================
-		Class _EventObject {
+		Class _EventObject extends eAutocomplete._Proxy {
 			__New(_source, _eventName, _callback) {
-				this.eventName := _eventName
+				this.source := _source, this.eventName := _eventName
 				if (_callback = "") {
-					this._delete(_source, _eventName)
+					this.unregister()
 				} if (IsFunc(_callback)) {
 					((_callback.minParams = "") && _callback:=Func(_callback))
 					_source[_eventName] := _callback
@@ -39,25 +36,29 @@
 					_source[_eventName] := _callback
 				} else _callback := _source[_eventName]
 			}
-			_delete(_k) {
-			_k[ this.eventName ] := ""
+			unregister() {
+			this.source[ this.eventName ] := ""
+			}
+			__Delete() {
+			this.unregister()
 			}
 		}
-		Class _Hotkey {
+		Class _Hotkey extends eAutocomplete._Proxy {
 			__New(_ifFuncObj, _keyName, _func) {
-				this.keyName := _keyName
+				this.ifFuncObj := _ifFuncObj, this.keyName := _keyName
 				Hotkey, If, % _ifFuncObj
 					Hotkey % _keyName, % _func, On
 				Hotkey, If
 			}
-			_delete(_k) {
+			__Delete() {
 				static _f := Func("WinActive")
-				Hotkey, If, % _k
+				_ifFuncObj := this.ifFuncObj
+				Hotkey, If, % _ifFuncObj
 					Hotkey % this.keyName, % _f, Off
 				Hotkey, If
 			}
 		}
-		Class _WinEventHook {
+		Class _WinEventHook extends eAutocomplete._Proxy {
 			__New(_idProcess, _eventMin, _eventMax, _lpfnWinEventProc) {
 				this.HWINEVENTHOOK := DllCall("SetWinEventHook"
 										, "Uint", _eventMin, "Uint", _eventMax
@@ -65,9 +66,28 @@
 										, "Uint", _idProcess
 										, "Uint", 0, "Uint", 0)
 			}
-			_delete(_k) {
+			__Delete() {
 			DllCall("UnhookWinEvent", "Ptr", this.HWINEVENTHOOK)
 			}
+		}
+		Class _Iterator extends eAutocomplete._Proxy {
+
+			__New(_ID, _fn) {
+			this.ID := _ID, this.callableObject := _fn
+			}
+
+			setPeriod(_period) {
+			if (_f:=this.callableObject)
+				SetTimer, % _f, % _period
+			}
+			__Delete() {
+			if not (_f:=this.callableObject)
+				return
+				SetTimer, % _f, Off
+				SetTimer, % _f, Delete
+				this.callableObject := ""
+			}
+
 		}
 		; ====================================================================================
 
@@ -328,7 +348,7 @@
 		_dispose() {
 		try GUI % this._parent . ":-Parent"
 		GuiControl -g, % this._HWND
-		eAutocomplete._eventObjects[ this ] := ""
+		eAutocomplete._EventObject(this)
 		}
 		__Delete() {
 			; MsgBox % A_ThisFunc
@@ -415,10 +435,8 @@
 	; ~~~~~~~~~~~~~~~~~~~~ PRIVATE BASE OBJECT PROPERTIES ~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	static _instances := {}
-	static _winEventHookFunctions := new eAutocomplete._Meta("_WinEventHook")
-	static _hotkeys := new eAutocomplete._Meta("_Hotkey")
-	static _eventObjects := new eAutocomplete._Meta("_EventObject")
 	static _bypassToggle := false
+	static ITERATOR_PERIOD := 125
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PUBLIC PROPERTIES ~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -475,10 +493,10 @@
 			return this._disabled
 			}
 			else if ((_k = "onCompletionCompleted") || (_k = "onResize") || (_k = "onValueChanged"))
-				return eAutocomplete._eventObjects[ this, "_" . _k ] := _v
+				return eAutocomplete._EventObject(this, "_" . _k, _v)
 			else if ((_k = "onReplacement") || (_k = "onSuggestionLookUp")) {
 				((_v <> "") || _v:=this["__" . _k].bind(this))
-			return eAutocomplete._eventObjects[ this, "_" . _k ] := _v
+			return eAutocomplete._EventObject(this, "_" . _k, _v)
 			}
 			else if ((_k = "collectAt") || (_k = "minWordLength") || (_k = "suggestAt"))
 				return (not ((_v:=Floor(_v)) > 0)) ? this["_" . _k] : this["_" . _k]:=_v
@@ -523,11 +541,12 @@
 			break
 			}
 		}
-		(_noMoreInstance && eAutocomplete._winEventHookFunctions[ 0 ]:="")
-		(_noMoreFromProcess && eAutocomplete._winEventHookFunctions[ this._idProcess ]:="")
+		(_noMoreInstance && eAutocomplete._WinEventHook(0))
+		(_noMoreFromProcess && eAutocomplete._WinEventHook(this._idProcess))
 		for _, _ifFuncObj in this._hkIfFuncObjects
-			eAutocomplete._hotkeys[ _ifFuncObj ] := ""
-		eAutocomplete._eventObjects[ this ] := ""
+			eAutocomplete._Hotkey(_ifFuncObj)
+		eAutocomplete._EventObject(this)
+		_ID := this._boundIterator.ID, this._boundIterator := "", eAutocomplete._Iterator(_ID)
 		if (this.hasKey("_hEditLowerCornerHandle"))
 			GuiControl, -g, % this._hEditLowerCornerHandle
 		if (this._learnWords)
@@ -618,34 +637,36 @@
 
 		_listBox := this._isComboBox ? eAutocomplete._ComboBoxList : eAutocomplete._DropDownList
 		_dropDownList := this._dropDownList := new _listBox(this, _dropDownListOptions)
-		eAutocomplete._eventObjects[ this._dropDownList, "_onSelectionChanged" ] := this._showcaseInterimResult.bind(this)
+		eAutocomplete._EventObject(this._dropDownList, "_onSelectionChanged", ObjBindMethod(this, "_showcaseInterimResult"))
 
 		for _key, _value in _opt
 			(_clone.hasKey(_key) && this[_key]:=_value)
 		((this._onSuggestionLookUp = "") && this.onSuggestionLookUp:="")
 		((this._onReplacement = "") && this.onReplacement:="")
 
-		if not (eAutocomplete._winEventHookFunctions[ this._idProcess ]) {
-			eAutocomplete._winEventHookFunctions[ this._idProcess, 0x800E, 0x800E ]
-				:= RegisterCallback("eAutocomplete._objectValueChangedEventMonitor")
-			eAutocomplete._winEventHookFunctions[ this._idProcess, 0x000A, 0x000A ]
-				:= RegisterCallback("eAutocomplete._systemMoveSizeEventMonitor")
+		if not (ObjCount(eAutocomplete._WinEventHook.instances[ this._idProcess ])) {
+			_callback := RegisterCallback("eAutocomplete._objectValueChangedEventMonitor")
+			eAutocomplete._WinEventHook(this._idProcess, 0x800E, 0x800E, _callback)
+			_callback := RegisterCallback("eAutocomplete._systemMoveSizeEventMonitor")
+			eAutocomplete._WinEventHook(this._idProcess, 0x000A, 0x000A, _callback)
 		}
-		if not (eAutocomplete._winEventHookFunctions[ 0 ])
-			eAutocomplete._winEventHookFunctions[ 0, 0x8005, 0x8005 ]
-				:= RegisterCallback("eAutocomplete._focusEventMonitor")
+		if not (ObjCount(eAutocomplete._WinEventHook.instances[ 0 ])) {
+			_callback := RegisterCallback("eAutocomplete._focusEventMonitor")
+			eAutocomplete._WinEventHook(0, 0x8005, 0x8005, _callback)
+		}
+		this._boundIterator := eAutocomplete._Iterator(A_TickCount, ObjBindMethod(this, "__valueChanged", _hEdit))
 
 		this._hkIfFuncObjects := []
 		_ifFuncObj := this._hkIfFuncObjects.1 := this._hotkeyPressHandler.bind("", _hEdit)
-			eAutocomplete._hotkeys[ _ifFuncObj, "Escape" ] := ObjBindMethod(this, "_suggest", false)
-			eAutocomplete._hotkeys[ _ifFuncObj, "Up" ] := ObjBindMethod(_dropDownList, "_selectUp")
-			eAutocomplete._hotkeys[ _ifFuncObj, "Down" ] := ObjBindMethod(_dropDownList, "_selectDown")
-			eAutocomplete._hotkeys[ _ifFuncObj, "Right" ] := ObjBindMethod(this, "_completionDataLookUp", 1)
-			eAutocomplete._hotkeys[ _ifFuncObj, "+Right" ] := ObjBindMethod(this, "_completionDataLookUp", 2)
-			eAutocomplete._hotkeys[ _ifFuncObj, "Tab" ] := ObjBindMethod(this, "_complete", "Tab", 1)
-			eAutocomplete._hotkeys[ _ifFuncObj, "+Tab" ] := ObjBindMethod(this, "_complete", "Tab", 2)
-			eAutocomplete._hotkeys[ _ifFuncObj, "Enter" ] := ObjBindMethod(this, "_complete", "Enter", 1)
-			eAutocomplete._hotkeys[ _ifFuncObj, "+Enter" ] := ObjBindMethod(this, "_complete", "Enter", 2)
+			eAutocomplete._Hotkey(_ifFuncObj, "Escape", ObjBindMethod(this, "_suggest", false))
+			eAutocomplete._Hotkey(_ifFuncObj, "Up", ObjBindMethod(_dropDownList, "_selectUp"))
+			eAutocomplete._Hotkey(_ifFuncObj, "Down", ObjBindMethod(_dropDownList, "_selectDown"))
+			eAutocomplete._Hotkey(_ifFuncObj, "Right", ObjBindMethod(this, "_completionDataLookUp", 1))
+			eAutocomplete._Hotkey(_ifFuncObj, "+Right", ObjBindMethod(this, "_completionDataLookUp", 2))
+			eAutocomplete._Hotkey(_ifFuncObj, "Tab", ObjBindMethod(this, "_complete", "Tab", 1))
+			eAutocomplete._Hotkey(_ifFuncObj, "+Tab", ObjBindMethod(this, "_complete", "Tab", 2))
+			eAutocomplete._Hotkey(_ifFuncObj, "Enter", ObjBindMethod(this, "_complete", "Enter", 1))
+			eAutocomplete._Hotkey(_ifFuncObj, "+Enter", ObjBindMethod(this, "_complete", "Enter", 2))
 
 	return eAutocomplete._instances[_hEdit] := this
 	}
@@ -876,30 +897,14 @@
 	}
 
 	_objectValueChangedEventMonitor(_event, _hwnd, _idObject, _idChild, _dwEventThread, _dwmsEventTime) {
-		static _isHandlingEvent := false
 		static _t := 0
 		if ((_dwmsEventTime - _t) < 30)
 			return
 		_t := _dwmsEventTime
-		if not (_isHandlingEvent) {
-			if (_isHandlingEvent:=eAutocomplete._instances.hasKey(_hwnd)) {
-				_inst := eAutocomplete._instances[_hwnd]
-				if (_inst._disabled || eAutocomplete._bypassToggle) {
-					_isHandlingEvent := false
-				return
-				}
-				_inst.__valueChanged(_hwnd)
-				_isHandlingEvent := false
-			}
-		} else if (eAutocomplete._instances.hasKey(_hwnd)) {
-			_inst := eAutocomplete._instances[_hwnd]
-			ControlGetText, _text,, % _inst._AHKID
-			if (_text <> _inst._content) {
-				_fn := _inst.__valueChanged.bind(_inst, _hwnd)
-				SetTimer % _fn, -50
-			}
-			Exit
-		}
+		_inst := eAutocomplete._instances[_hwnd]
+		if (_inst._disabled || eAutocomplete._bypassToggle)
+			return
+		_inst._boundIterator.setPeriod(-eAutocomplete.ITERATOR_PERIOD)
 	}
 	_focusEventMonitor(_event, _hwnd) {
 		for _each, _instance in eAutocomplete._instances {
