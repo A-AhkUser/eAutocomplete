@@ -351,7 +351,7 @@
 		eAutocomplete._EventObject(this)
 		}
 		__Delete() {
-			; MsgBox % A_ThisFunc
+			MsgBox % A_ThisFunc
 			try GUI % this._parent . ":Destroy"
 			DllCall("SelectObject", "UPtr", this._hDC, "UPtr", this._hFont, "UPtr")
 			DllCall("ReleaseDC", "UPtr", this._HWND, "UPtr", this._hDC)
@@ -436,7 +436,7 @@
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	static _instances := {}
 	static _bypassToggle := false
-	static ITERATOR_PERIOD := 125
+	static _ITERATOR_PERIOD := 125
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PUBLIC PROPERTIES ~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -460,7 +460,9 @@
 					fontName: "Segoe UI",
 					fontSize: "13",
 					maxSuggestions: 7,
-					transparency: 235
+					transparency: 235,
+					AHKID: "",
+					HWND: ""
 				},
 				onCompletionCompleted: "",
 				onReplacement: "",
@@ -554,7 +556,7 @@
 		this._dropDownList._dispose()
 	}
 	__Delete() {
-		; MsgBox % A_ThisFunc
+		MsgBox % A_ThisFunc
 	}
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PUBLIC BASE OBJECT METHODS ~~~~~~~~~~~~~
@@ -901,10 +903,12 @@
 		if ((_dwmsEventTime - _t) < 30)
 			return
 		_t := _dwmsEventTime
-		_inst := eAutocomplete._instances[_hwnd]
-		if (_inst._disabled || eAutocomplete._bypassToggle)
+		if (eAutocomplete._bypassToggle)
 			return
-		_inst._boundIterator.setPeriod(-eAutocomplete.ITERATOR_PERIOD)
+		if (eAutocomplete._instances.hasKey(_hwnd)) {
+			_inst := eAutocomplete._instances[_hwnd]
+			(!_inst._disabled && _inst._boundIterator.setPeriod(-eAutocomplete._ITERATOR_PERIOD))
+		}
 	}
 	_focusEventMonitor(_event, _hwnd) {
 		for _each, _instance in eAutocomplete._instances {
