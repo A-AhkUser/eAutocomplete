@@ -540,14 +540,12 @@
 			return
 		this.disabled := true
 		eAutocomplete._instances.delete(this._HWND)
-		for _, _instance in eAutocomplete._instances, _noMoreInstance := true, _noMoreFromProcess := true {
-			_noMoreInstance := false
+		for _, _instance in eAutocomplete._instances, _noMoreFromProcess := true {
 			if (_instance._idProcess = this._idProcess) {
 				_noMoreFromProcess := false
 			break
 			}
 		}
-		(_noMoreInstance && eAutocomplete._WinEventHook(0))
 		(_noMoreFromProcess && eAutocomplete._WinEventHook(this._idProcess))
 		for _, _ifFuncObj in this._hkIfFuncObjects
 			eAutocomplete._Hotkey(_ifFuncObj)
@@ -599,6 +597,7 @@
 	_content := ""
 	_pendingWord := ""
 	_completionData := ""
+	_ready := true
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PRIVATE METHODS ~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -641,7 +640,7 @@
 		}
 		this._AHKID := "ahk_id " . (this._HWND:=_hEdit)
 
-		_listBox := this._isComboBox ? eAutocomplete._ComboBoxList : eAutocomplete._DropDownList
+		_listBox := (this._isComboBox) ? eAutocomplete._ComboBoxList : eAutocomplete._DropDownList
 		_dropDownList := this._dropDownList := new _listBox(this, _dropDownListOptions)
 		eAutocomplete._EventObject(this._dropDownList, "_onSelectionChanged", ObjBindMethod(this, "_showcaseInterimResult"))
 
@@ -653,27 +652,28 @@
 		if not (ObjCount(eAutocomplete._WinEventHook.instances[ this._idProcess ])) {
 			_callback := RegisterCallback("eAutocomplete._objectValueChangedEventMonitor")
 			eAutocomplete._WinEventHook(this._idProcess, 0x800E, 0x800E, _callback)
-			_callback := RegisterCallback("eAutocomplete._systemMoveSizeEventMonitor")
+			_callback := RegisterCallback("eAutocomplete._defocusEventMonitor")
 			eAutocomplete._WinEventHook(this._idProcess, 0x000A, 0x000A, _callback)
-		}
-		if not (ObjCount(eAutocomplete._WinEventHook.instances[ 0 ])) {
-			_callback := RegisterCallback("eAutocomplete._focusEventMonitor")
-			eAutocomplete._WinEventHook(0, 0x8005, 0x8005, _callback)
+			eAutocomplete._WinEventHook(this._idProcess, 0x8005, 0x8005, _callback)
+			eAutocomplete._WinEventHook(this._idProcess, 0x0014, 0x0014, _callback)
 		}
 		this._boundIterator := eAutocomplete._Iterator(A_TickCount, ObjBindMethod(this, "__suggestionsAvailable", _hEdit))
 
 		this._hkIfFuncObjects := []
 		_ifFuncObj := this._hkIfFuncObjects.1 := this._hotkeyPressHandler.bind("", _hEdit)
-			eAutocomplete._Hotkey(_ifFuncObj, "Escape", ObjBindMethod(this, "_suggest", false))
+			eAutocomplete._Hotkey(_ifFuncObj, "Escape", ObjBindMethod(this, "_reset"))
 			eAutocomplete._Hotkey(_ifFuncObj, "Up", ObjBindMethod(_dropDownList, "_selectUp"))
 			eAutocomplete._Hotkey(_ifFuncObj, "Down", ObjBindMethod(_dropDownList, "_selectDown"))
 			eAutocomplete._Hotkey(_ifFuncObj, "Left", Func("WinActive"))
-			eAutocomplete._Hotkey(_ifFuncObj, "Right", ObjBindMethod(this, "_completionDataLookUp", 1))
-			eAutocomplete._Hotkey(_ifFuncObj, "+Right", ObjBindMethod(this, "_completionDataLookUp", 2))
+			eAutocomplete._Hotkey(_ifFuncObj, "Right", ObjBindMethod(this, "_completionDataLookUp", "Right", 1))
+			RegExMatch("Right", "i)(\w+|.)(?:[ `t]Up)?$", _match)
+			eAutocomplete._Hotkey(_ifFuncObj, "+Right", ObjBindMethod(this, "_completionDataLookUp", _match, 2))
 			eAutocomplete._Hotkey(_ifFuncObj, "Tab", ObjBindMethod(this, "_complete", "Tab", 1))
-			eAutocomplete._Hotkey(_ifFuncObj, "+Tab", ObjBindMethod(this, "_complete", "Tab", 2))
+			RegExMatch("Tab", "i)(\w+|.)(?:[ `t]Up)?$", _match)
+			eAutocomplete._Hotkey(_ifFuncObj, "+Tab", ObjBindMethod(this, "_complete", _match, 2))
 			eAutocomplete._Hotkey(_ifFuncObj, "Enter", ObjBindMethod(this, "_complete", "Enter", 1))
-			eAutocomplete._Hotkey(_ifFuncObj, "+Enter", ObjBindMethod(this, "_complete", "Enter", 2))
+			RegExMatch("Enter", "i)(\w+|.)(?:[ `t]Up)?$", _match)
+			eAutocomplete._Hotkey(_ifFuncObj, "+Enter", ObjBindMethod(this, "_complete", _match, 2))
 
 	return eAutocomplete._instances[_hEdit] := this
 	}
@@ -685,6 +685,7 @@
 		if (this._hasSuggestions)
 			((this._autoSuggest || this._dropDownList._visible) && this._suggest())
 		else this._suggest(false)
+		this._ready := true
 		(this._onSuggestionsAvailable && this._onSuggestionsAvailable.call(this, _hEdit, this._content))
 	}
 	_capturePendingWord() {
@@ -756,6 +757,9 @@
 			this._dropDownList._reset()
 		}
 	}
+	_reset() {
+	this._rawSend("{Delete}"), this._suggest(false)
+	}
 
 	_showcaseInterimResult(_selection, _isClick) {
 		_pendingWord := this._pendingWord
@@ -776,7 +780,7 @@
 		this._setSelection(_pos + _len, _pos)
 		(_isClick && this._dropDownList._reset())
 	}
-	_completionDataLookUp(_tabIndex) {
+	_completionDataLookUp(_key, _tabIndex) {
 	if not (this._completionData)
 		return
 	_dropDownList := this._dropDownList
@@ -785,7 +789,7 @@
 		_x := _dropDownList._lastX + 10
 		_y := _dropDownList._lastY + (_dropDownList._selection.offsetTop - 0.5) * _dropDownList._itemHeight
 		ToolTip % this._onSuggestionLookUp.call(this._completionData.1, _tabIndex), % _x, % _y
-		KeyWait, Right
+		KeyWait % _key
 		ToolTip
 	CoordMode, ToolTip, % _coordModeToolTip
 	}
@@ -887,7 +891,7 @@
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	_hotkeyPressHandler(_hwnd, _thisHotkey) {
 		_inst := eAutocomplete._instances[_hwnd]
-		if not (WinActive("ahk_id " . _inst._parent))
+		if (!_inst._ready || !WinActive("ahk_id " . _inst._parent))
 			return false
 		ControlGetFocus, _focusedControl, % "ahk_id " . _inst._parent
 		ControlGet, _focusedControl, Hwnd,, % _focusedControl, % "ahk_id " . _inst._parent
@@ -900,7 +904,7 @@
 			}
 		return true
 		}
-	return false
+		return false
 	}
 
 	_objectValueChangedEventMonitor(_event, _hwnd, _idObject, _idChild, _dwEventThread, _dwmsEventTime) {
@@ -912,21 +916,17 @@
 			return
 		if (eAutocomplete._instances.hasKey(_hwnd)) {
 			_inst := eAutocomplete._instances[_hwnd]
+			_inst._ready := false
 			(!_inst._disabled && _inst._boundIterator.setPeriod(-eAutocomplete._ITERATOR_PERIOD))
 		}
 	}
-	_focusEventMonitor(_event, _hwnd) {
+	_defocusEventMonitor(_event, _hwnd) {
 		for _each, _instance in eAutocomplete._instances {
 			if (_instance._dropDownList._HWND = _hwnd)
 				return
-		}
-		(eAutocomplete._lastFoundInstance && eAutocomplete._instances[eAutocomplete._lastFoundInstance]._suggest(false))
-		eAutocomplete._lastFoundInstance := (eAutocomplete._instances.hasKey(_hwnd)) ? _hwnd : 0x0
-	}
-	_systemMoveSizeEventMonitor(_event, _hwnd) {
-		for _each, _instance in eAutocomplete._instances {
-			if (_instance._parent = _hwnd) {
-				(!_instance._isComboBox && _instance._dropDownList._visible && _instance._suggest(false))
+			if (_instance._dropDownList._visible) {
+				_instance._reset()
+			break
 			}
 		}
 	}
