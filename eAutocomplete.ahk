@@ -343,6 +343,10 @@
 		_index := this._selection._index
 		((++_index > this._itemCount) && _index:=1)
 		this._select(_index)
+		if ((this._selection.offsetTop = this.maxSuggestions) && !DllCall("GetScrollPos", "UInt", this._HWND, "Int", 1)) { ; SB_VERT
+			KeyWait, Down
+			this._selectDown()
+		}
 		}
 
 		_dispose() {
@@ -468,7 +472,7 @@
 				onReplacement: "",
 				onResize: "",
 				onSuggestionLookUp: "",
-				onValueChanged: "",
+				onSuggestionsAvailable: "",
 				regExSymbol: "*",
 				source: eAutocomplete._Resource.table["Default"],
 				suggestAt: 2
@@ -494,7 +498,7 @@
 				((this._disabled:=!!_v) && this._suggest(false))
 			return this._disabled
 			}
-			else if ((_k = "onCompletionCompleted") || (_k = "onResize") || (_k = "onValueChanged"))
+			else if ((_k = "onCompletionCompleted") || (_k = "onResize") || (_k = "onSuggestionsAvailable"))
 				return eAutocomplete._EventObject(this, "_" . _k, _v)
 			else if ((_k = "onReplacement") || (_k = "onSuggestionLookUp")) {
 				((_v <> "") || _v:=this["__" . _k].bind(this))
@@ -656,13 +660,14 @@
 			_callback := RegisterCallback("eAutocomplete._focusEventMonitor")
 			eAutocomplete._WinEventHook(0, 0x8005, 0x8005, _callback)
 		}
-		this._boundIterator := eAutocomplete._Iterator(A_TickCount, ObjBindMethod(this, "__valueChanged", _hEdit))
+		this._boundIterator := eAutocomplete._Iterator(A_TickCount, ObjBindMethod(this, "__suggestionsAvailable", _hEdit))
 
 		this._hkIfFuncObjects := []
 		_ifFuncObj := this._hkIfFuncObjects.1 := this._hotkeyPressHandler.bind("", _hEdit)
 			eAutocomplete._Hotkey(_ifFuncObj, "Escape", ObjBindMethod(this, "_suggest", false))
 			eAutocomplete._Hotkey(_ifFuncObj, "Up", ObjBindMethod(_dropDownList, "_selectUp"))
 			eAutocomplete._Hotkey(_ifFuncObj, "Down", ObjBindMethod(_dropDownList, "_selectDown"))
+			eAutocomplete._Hotkey(_ifFuncObj, "Left", Func("WinActive"))
 			eAutocomplete._Hotkey(_ifFuncObj, "Right", ObjBindMethod(this, "_completionDataLookUp", 1))
 			eAutocomplete._Hotkey(_ifFuncObj, "+Right", ObjBindMethod(this, "_completionDataLookUp", 2))
 			eAutocomplete._Hotkey(_ifFuncObj, "Tab", ObjBindMethod(this, "_complete", "Tab", 1))
@@ -675,12 +680,12 @@
 
 	; ==================================================================
 
-	__valueChanged(_hEdit) {
+	__suggestionsAvailable(_hEdit) {
 		this._getText()
 		if (this._hasSuggestions)
 			((this._autoSuggest || this._dropDownList._visible) && this._suggest())
 		else this._suggest(false)
-		(this._onValueChanged && this._onValueChanged.call(this, _hEdit, this._content))
+		(this._onSuggestionsAvailable && this._onSuggestionsAvailable.call(this, _hEdit, this._content))
 	}
 	_capturePendingWord() {
 		_wrapper := {base: new eAutocomplete._pendingWordMatchObjectWrapper}
