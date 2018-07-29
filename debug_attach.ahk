@@ -7,12 +7,12 @@ SendMode, Input
 
 #Include %A_ScriptDir%\eAutocomplete.ahk
 
-if not (FileExist(A_ScriptDir . "\wordlist.txt"))
-	UrlDownloadToFile % "https://raw.githubusercontent.com/sl5net/global-IntelliSense-everywhere/master/Wordlists/_globalWordLists/languages/WordList%20English%20Gutenberg.txt", % A_ScriptDir . "\wordlist.txt"
-eAutocomplete.setSourceFromFile("mySource", A_ScriptDir . "\wordlist.txt")
-if not (FileExist(A_ScriptDir . "\wordlist2.txt"))
-	UrlDownloadToFile % "https://raw.githubusercontent.com/A-AhkUser/keypad-library/master/Keypad/Autocompletion/fr", % A_ScriptDir . "\wordlist2.txt"
-eAutocomplete.setSourceFromFile("mySource2", A_ScriptDir . "\wordlist2.txt")
+for source, url in {"WordList English Gutenberg": "https://raw.githubusercontent.com/sl5net/global-IntelliSense-everywhere/master/Wordlists/_globalWordLists/languages/WordList%20English%20Gutenberg.txt"
+					, "Autocompletion_fr": "https://raw.githubusercontent.com/A-AhkUser/keypad-library/master/Keypad/Autocompletion/fr"} {
+if not (FileExist(filename:=A_ScriptDir . "\" . source . ".txt"))
+	UrlDownloadToFile % url, % filename
+	eAutocomplete.setSourceFromFile(source, filename)
+}
 var =
 (
 Laurène%A_Tab%test%A_Tab%blabla
@@ -21,9 +21,7 @@ Francia
 )
 eAutocomplete.setSourceFromVar("source_test", var)
 
-GUI, +Resize +hwndGUIID
-GUI, Font, s14, Segoe UI
-GUI, Color, White, White
+
 options :=
 (LTrim Join C
 	{
@@ -37,7 +35,7 @@ options :=
 		learnWords: true,
 		matchModeRegEx: true,
 		minWordLength: 4,
-		dropDownList: {
+		listbox: {
 			bkColor: "FFFFFF",
 			fontColor: "000000",
 			fontName: "Segoe UI",
@@ -45,19 +43,20 @@ options :=
 			maxSuggestions: 7,
 			transparency: 220
 		},
-		onCompletionCompleted: "test_onCompletionCompleted",
+		onCompletion: "test_onCompletion",
 		onReplacement: "test_onReplacement",
 		onResize: "test_onResize",
 		onSuggestionLookUp: "test_onSelectionLookUp",
-		onValueChanged: "test_onValueChanged",
 		regExSymbol: "*",
-		source: "mySource",
+		source: "WordList English Gutenberg",
 		suggestAt: 2
 	}
 )
 WinWait, ahk_class Notepad
 ControlGet, hEdit, Hwnd,, Edit1, % "ahk_id " . WinExist()
 A := eAutocomplete.attach(hEdit, options)
+; ListLines
+; Pause
 ; =================================================
 options2 :=
 (LTrim Join C
@@ -72,7 +71,7 @@ options2 :=
 		learnWords: false,
 		matchModeRegEx: false,
 		minWordLength: 5,
-		dropDownList: {
+		listbox: {
 			bkColor: "1a4356",
 			fontColor: "FFFFFF",
 			fontName: "Segoe UI",
@@ -80,31 +79,33 @@ options2 :=
 			maxSuggestions: 11,
 			transparency: 130
 		},
-		onCompletionCompleted: "test_onCompletionCompleted2",
+		onCompletion: "test_onCompletion2",
 		onReplacement: "",
 		onResize: "test_onResize2",
 		onSuggestionLookUp: "",
-		onValueChanged: "test_onValueChanged2",
 		regExSymbol: "*",
-		source: "mySource2",
+		source: "Autocompletion_fr",
 		suggestAt: 1
 	}
 )
+GUI, +Resize +hwndGUIID +LastFound
+GUI, Font, s14, Segoe UI
+GUI, Color, White, White
 GUI, Add, Edit, w400 h400 hwndhEdit,
 GUI, Show, AutoSize
+WinWaitActive
 B := eAutocomplete.attach(hEdit, options2)
 OnExit, handleExit
 return
-
 
 !i::
 	str := ""
 	for k, v in options {
 		if (IsObject(v)) {
-			str .= ".dropDownList`r`n"
+			str .= ".listbox`r`n"
 			for i in v
-				str .= A_Tab i " > " (A.dropDownList)[i] "`r`n"
-		} else str .= ((k = "source") || (SubStr(k, 1, 2) = "on")) ? k " > " A[k].name "`r`n" : k " > " A[k] "`r`n"
+				str .= A_Tab i A_Tab " ~ " A_Tab (A.listbox)[i] "`r`n"
+		} else str .= ((k = "source") || (SubStr(k, 1, 2) = "on")) ? k A_Tab " ~ " A_Tab A[k].name "`r`n" : k A_Tab " ~ " A_Tab A[k] "`r`n"
 	}
 	MsgBox % str
 return
@@ -115,37 +116,29 @@ handleExit:
 ExitApp
 
 test_onReplacement(_suggestionText, _tabIndex) {
-return _suggestionText "[" _tabIndex "] from " A_ThisFunc
+return "[" _suggestionText "] from " A_ThisFunc " (" _tabIndex ")"
 }
-test_onCompletionCompleted(_instance, _text, _isRemplacement) {
-ToolTip % A_ThisFunc "|" _instance.HWND+0 "," _text "[" _isRemplacement "]"
-}
-test_onValueChanged1(_instance, _hEdit, _content) {
-static _i := 0
-ToolTip % ++_i, 300, 0, 7
-ToolTip % A_ThisFunc "|" _instance.HWND+0 "," _hEdit " >>`r`n" _content
+test_onCompletion(_instance, _text, _isRemplacement) {
+ToolTip % A_ThisFunc " `r`n " _instance.HWND+0 " `r`n " _text "[" _isRemplacement "]"
 }
 test_onResize(_GUI, _instance, _w, _h, _x, _y) {
 ToolTip % A_ThisFunc "|" _instance.HWND+0 "," _w "," _h "," _x "," _y
 }
-test_onSelectionLookUp(_value, _tabIndex) {
-return _value "[" _tabIndex "] from " A_ThisFunc
+test_onSelectionLookUp(_suggestionText, _tabIndex) {
+return _suggestionText "[" _tabIndex "] from " A_ThisFunc
 }
 
 test_onReplacement2(_suggestionText, _tabIndex) {
-return _suggestionText "[" _tabIndex "] from " A_ThisFunc
+return "[" _suggestionText "] from " A_ThisFunc " (" _tabIndex ")"
 }
-test_onCompletionCompleted2(_instance, _text, _isRemplacement) {
-ToolTip % A_ThisFunc "|" _instance.HWND+0 "," _text "[" _isRemplacement "]"
-}
-test_onValueChanged2(_instance, _hEdit, _content) {
-ToolTip % A_ThisFunc "|" _instance.HWND+0 "," _hEdit " >>`r`n" _content
+test_onCompletion2(_instance, _text, _isRemplacement) {
+ToolTip % A_ThisFunc " `r`n " _instance.HWND+0 " `r`n " _text "[" _isRemplacement "]"
 }
 test_onResize2(_GUI, _instance, _w, _h, _x, _y) {
 ToolTip % A_ThisFunc "|" _instance.HWND+0 "," _w "," _h "," _x "," _y
 }
-test_onSelectionLookUp2(_value, _tabIndex) {
-return _value "[" _tabIndex "] from " A_ThisFunc
+test_onSelectionLookUp2(_suggestionText, _tabIndex) {
+return _suggestionText "[" _tabIndex "] from " A_ThisFunc
 }
 
 !s::
@@ -158,13 +151,13 @@ return _value "[" _tabIndex "] from " A_ThisFunc
 	A.learnWords := !A.learnWords
 	A.matchModeRegEx := !A.matchModeRegEx
 	A.minWordLength := 3
-	A.dropDownList.maxSuggestions := 2
-	A.dropDownList.transparency := 110
-	A.onCompletionCompleted := "test_onCompletionCompleted2"
+	A.listbox.maxSuggestions := 2
+	A.listbox.transparency := 110
+	A.listbox.tabStops := 8
+	A.onCompletion := "test_onCompletion2"
 	A.onReplacement := "test_onReplacement2"
 	A.onResize := "test_onResize2"
 	A.onSuggestionLookUp := "test_onSelectionLookUp2"
-	A.onValueChanged := "test_onValueChanged2"
 	A.regExSymbol := "+"
 	A.source := "source_test"
 	A.suggestAt := 1
