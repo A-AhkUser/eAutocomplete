@@ -632,6 +632,7 @@
 		_listbox := this._listbox := new _listBox(_GUIID, _hHostControl)
 
 		this._source := eAutocomplete._Resource.table["Default"]
+		this.onSuggestionLookUp := "", this.onReplacement := ""
 		if (IsObject(_opt)) {
 			_clone := _opt.clone()
 			if (_listBoxOptions:=_clone.remove("listbox"))
