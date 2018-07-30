@@ -1,4 +1,5 @@
-﻿; Acc_Init() {
+﻿; see also: https://autohotkey.com/board/topic/77303-acc-library-ahk-l-updated-09272012/
+; Acc_Init() {
 ; static _h := ""
 ; IfNotEqual, _h,, return
 	; _h := DllCall("LoadLibrary", "Str", "Oleacc.dll", "UPtr")
