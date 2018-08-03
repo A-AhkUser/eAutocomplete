@@ -2,12 +2,12 @@
 ###### AutoHotkey v1.29.00+
 ***
 
-The class provides a programmable interface allowing to easily integrate a custom word autocomplete function in a given script or project. Any Edit* control should be able to be wrapped into an eAutocomplete object. Practically, it enables users to quickly find, get info tips and select from a dynamic pre-populated list of data (*e.g.* complete strings, replacement strings) as he types, leveraging typing, definition lookups, searching, translation, filtering *etc.*
-
-> \* A support for RICHEDIT50W controls already exits internally and will be made available soon.
-
 #### Download the [latest release](https://github.com/A-AhkUser/eAutocomplete/releases)
-> note: **Unlike the latest release, the master branch is NOT considered as fully tested on each commit.**
+> notes:
+> - This readme provides an overview of the development version and, as such, may not necessarily reflect your current version. Consider checking out the html file (``eAutocomplete.html``) bundled in the release for an overview of the programmable interface.
+> - Unlike the latest release, the master branch is NOT considered as fully tested on each commit.
+
+The class provides a programmable interface allowing to easily integrate a custom word autocomplete function in a given script or project. Any Edit/RICHEDIT50W control should be able to be wrapped into an eAutocomplete object. Practically, it enables users to quickly find, get info tips and select from a dynamic pre-populated list of data (*e.g.* complete strings, replacement strings) as he types, leveraging typing, definition lookups, searching, translation, filtering *etc.*
 
 ### Thanks to:
 
@@ -50,7 +50,7 @@ The class provides a programmable interface allowing to easily integrate a custo
 
 ***
 
-Enables users, as typing in an Edit control, to quickly find and select from a dynamic pre-populated list of suggestions and, by this means, to expand/replace partially entered strings into/by complete strings. When a user starts to type in the edit control and a brief rest (225ms) occured since the last keystroke, the script starts searching for entries that match and should display complete strings to choose from, based both on earlier typed letters and the content of a [custom list](#custom-databases). If the host edit control is a single-line edit control, the list of choices is displayed beneath the control, in the manner of a combobox list (and, in this case, items can be clicked).
+Enables users, as typing in an Edit/RICHEDIT50W control, to quickly find and select from a dynamic pre-populated list of suggestions and, by this means, to expand/replace partially entered strings into/by complete strings. When a user starts to type in the edit control and a brief rest (225ms) occured since the last keystroke, the script starts searching for entries that match and should display complete strings to choose from, based both on earlier typed letters and the content of a [custom list](#custom-databases). If the host edit control is a single-line edit control, the list of choices is displayed beneath the control, in the manner of a combobox list (and, in this case, items can be clicked).
 
 * Press the `Tab` key to complete a pending word with the selected suggestion (the top most suggestion is selected by default).
 * Use both the `Down` and `Up` arrow keys to select from the list all other available suggestions. Hitting `Up` while the first item is selected will bring you to the last one while hitting `Down` on the last item will bring you to the first one.
@@ -74,7 +74,7 @@ Specify `.` (that is, a dot) as one of the customizable `endkeys` and disable th
 
 - Download the [latest release](https://github.com/A-AhkUser/eAutocomplete/releases) and extract the content of the zip file to a location of your choice, for example into your project's folder hierarchy.
 - Load the library (`\eAutocomplete.ahk`) by means of the [#Include directive](https://www.autohotkey.com/docs/commands/_Include.htm).
-- You can either [create](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#create-method) an `eAutocomplete` control (that is, add a custom edit control and its wrapper to an existing ahk GUI window) or endow with word completion feature an existing edit control (*e.g* *Notepad*'s one) by means of the [attach method](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#attach-method) - both methods returning a new instance of `eAutocomplete`.
+- You can either [create](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#create-method) an `eAutocomplete` control (that is, add a custom edit control and its wrapper to an existing ahk GUI window) or endow with word completion feature an existing edit control (*e.g* *Notepad*'s one) or an existing rich edit control (*e.g* *Wordpad*'s one) by means of the [attach method](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#attach-method) - both methods returning a new instance of `eAutocomplete`.
 
 #### Sample example
 
@@ -91,7 +91,9 @@ jour	day	день
 )
 /* 
 Autocompletion data are assumed to be described in a linefeed-separated list of a TSV-formatted lines.
-A line can describe up to three items, in a tabular structure
+A line can describe up to three items, in a tabular structure:
+- the first tab-separated item represents the string value which is intended to be displayed in the drop-down list, as an actual suggestion.
+- the other two items represent potential replacement strings - aside from being able to be displayed as info tips.
 */
 eAutocomplete.setSourceFromVar("mySource", list)
 ; Creates a new autocomplete dictionary from an input string, storing it directly in the base object.
@@ -120,7 +122,7 @@ eA := eAutocomplete.create(_GUIID, _editOptions:="", _options:="")
 | parameter | description |
 |:-|:-|
 | ``_GUIID`` [HWND] | The host [window's HWND](https://www.autohotkey.com/docs/misc/WinTitle.htm#ahk_id). |
-| ``_editOptions`` *OPTIONAL* [HWND] | The [edit control's options](https://www.autohotkey.com/docs/commands/GuiControls.htm#Edit_Options). The `+Resize` option may be listed in ``options`` to allow the user to resize both the height and width of the edit control. |
+| ``_editOptions`` *OPTIONAL* [STRING] | The [edit control's options](https://www.autohotkey.com/docs/commands/GuiControls.htm#Edit_Options). The `+Resize` option may be listed in ``options`` to allow the user to resize both the height and width of the edit control. |
 | ``_options`` *OPTIONAL* [OBJECT] | An [object](https://www.autohotkey.com/docs/Objects.htm#Usage_Associative_Arrays). If applicable, the [following keys](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#options) are processed. |
 
 ## Attach base method
@@ -130,7 +132,7 @@ eA := eAutocomplete.create(_GUIID, _editOptions:="", _options:="")
 eA := eAutocomplete.attach(_hHostControl, _options:="")
 ```
 ***
-*The `attach` method throws an exception upon failure (such as if the host control is not a representative of the class `Edit`).*
+*The `attach` method throws an exception upon failure (such as if the host control is not a representative of the class `Edit/RICHEDIT50W`).*
 
 | parameter | description |
 |:-|:-|
@@ -141,7 +143,7 @@ eA := eAutocomplete.attach(_hHostControl, _options:="")
 ### Options
 ***
 
-###### All keys may at any time be modified after [the instance is created](#create-base-method) by setting the value of the respective [property](https://www.autohotkey.com/docs/Objects.htm#Usage_Objects). On a side note, the runtime readonly properties `eA.HWND`/`eA.AHKID` and `eA.listbox.HWND`/`eA.AHKID` contain respectively the host control and the drop-down list control's HWND/AHKID.
+###### All keys may at any time be modified after [the instance is created](#create-base-method) by setting the value of the respective [property](https://www.autohotkey.com/docs/Objects.htm#Usage_Objects). On a side note, the runtime readonly properties `eA.HWND`/`eA.AHKID` and `eA.listbox.HWND/eA.listbox.AHKID` contain respectively the host control and the drop-down list control's HWND/AHKID.
 
 | key (property) | description | default value |
 | :---: | :- | :---: |
@@ -158,13 +160,13 @@ eA := eAutocomplete.attach(_hHostControl, _options:="")
 | ``source`` | Specifies the [autocomplete list](#custom-databases) to use. The value must be the name of a source that was previously defined using either the [``setSourceFromVar`` or the ``setSourceFromFile`` base method](#available-methods). Specify an empty string and enable the `learnWords` option to start building a new wordlist from the scratch. | `""` |
 | ``suggestAt`` | Set the minimum number of characters a user must type before a search is performed. Zero is useful for local data with just a few items, but a higher value should be used when a single character search could match a few thousand items. | `2` |
 |  |  |  |
-| ``onCompletion`` | Associate a function with the `completion` event, which is user-side. This can be used, for example, to an launch a search engine when the user has selected an item. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling). | `""` |
-| ``onReplacement`` | Associate a function with the `replacement` event, which is user-side. This can be used to allow dynamic replacements, such as when replacement strings come from a translation API, as an example. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling). | `""` |
+| ``onCompletion`` | Associate a function with the `completion` event. This can be used, for example, to an launch a search engine when the user has selected an item. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling). | `""` |
+| ``onReplacement`` | Associate a function with the `replacement` event. This can be used to allow dynamic replacements, such as when replacement strings come from a translation API, as an example. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling). | `""` |
 | ``onResize`` | Associate a function with the little UI handle which allows resizing by the user and with which is endowed an edit control when it has been created using the `create` method and have `+Resize` listed in `editOptions`. It is launched automatically whenever the user resizes the edit control by its means. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling). | `""` |
-| ``onSuggestionLookUp`` | Associate a function with the `suggestionLookUp` event, which is user-side. This can be used to allow dynamic description lookups such as when description strings come from a dictionary API, as an example. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling). | `""` |
+| ``onSuggestionLookUp`` | Associate a function with the `suggestionLookUp` event. This can be used to allow dynamic description lookups such as when description strings come from a dictionary API, as an example. See also: [Event handling](https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling). | `""` |
 |  |  |  |
-| ``listbox.bkColor`` | Sets the background color of the drop-down list. | `FFFFFF` |
-| ``listbox.fontColor`` | Sets the font color for the drop-down list. | `000000` |
+| ``listbox.bkColor`` | Sets the background color of the drop-down list by specifying one of the 16 primary [HTML color names](https://www.autohotkey.com/docs/commands/Progress.htm#colors) or a 6-digit RGB color value. | `FFFFFF` |
+| ``listbox.fontColor`` | Sets the font color for the drop-down list by specifying one of the 16 primary [HTML color names](https://www.autohotkey.com/docs/commands/Progress.htm#colors) or a 6-digit RGB color value. | `000000` |
 | ``listbox.fontName`` | Sets the font typeface for the drop-down list. | `Segoe UI` |
 | ``listbox.fontSize`` | Sets the font size for the drop-down list. | `13` |
 | ``listbox.maxSuggestions`` | The maximum number of suggestions to display in the drop-down list, without having to scrolling, if necesary. | `7` |
@@ -178,13 +180,15 @@ eA := eAutocomplete.attach(_hHostControl, _options:="")
 
 #### Autocompletion data are assumed to be described in a linefeed-separated list of a TSV-formatted lines. A line can describe up to three items, in a tabular structure:
 ```
-автомобиль	véhicule	voiture
+лето		summer		прекрасное лето - great summer`r`nпроводить лето - to summer
+		this is a comment
+ this is a comment
 ```
 #### In particular, in this case:
 - the first tab-separated item represents the string value which is intended to be displayed in the drop-down list, as an actual suggestion.
 - the other two items represent potential replacement strings - aside from being able to be displayed as info tips.
 
-Both the second and the third items may be omitted (that is, a line may consist in a single field, whether it is a word or a group of word) - while specifying an empty string in between two tab-separated values (that is, two consecutive tab characters) allows to omit the second item while being able to use the third one as third. Also, each line may be commented out by prefixing it by one or more space (or tab) characters.
+Both the second and the third items may be omitted (that is, a line may consist in a single field, whether it is a word or a group of word) - while specifying an empty string in between two tab-separated values (that is, two consecutive tab characters) allows to omit the second item while being able to use the third one as third. Description/replacement strings can be multiline text strings - however, in this case, both the newline (linefeed/LF) and the carriage return (CR) characters must be [escaped](https://www.autohotkey.com/docs/commands/_EscapeChar.htm). Also, each line may be commented out by prefixing it by one or more space (or tab) characters.
 </br>
 
 *note: A linefeed-separated list of a TSV-formatted lines can be built in particular from your google drive or you office suite - from a spreadsheet by saving it as... `.csv` (and specifying, if need be, a tabulation as field separator)*.
@@ -222,7 +226,7 @@ eAutocomplete.setSourceFromFile(_sourceName, _fileFullPath)
 | parameter | description |
 |:-|:-|
 | ``_source`` | The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
-| ``_fileFullPath`` | The absolute path of the file to read (note: **its content will be overwritten and replaced by an indexed list of suggestion items, either at the time the source is replaced by a new one by setting the eponymous property or at the time the `dispose` method is called**). |
+| ``_fileFullPath`` | The absolute path of the file to read (note: **its content will be overwritten and replaced by a sorted list of suggestion items, either at the time the source is replaced by a new one by setting the eponymous property or at the time the `dispose` method is called**). |
 
 ***
 ```Python
@@ -257,7 +261,7 @@ The script is able to call a user-defined callback for the following events:
 - `onReplacement`
 - `onSize`
 
-The value can be either the name of a function, a function reference or a boundFunc object. In the latter case, stucked bound references, if any, are freed at the time the `dispose` instance's own method is called.
+The value can be either the name of a function, a [function reference](https://www.autohotkey.com/docs/commands/Func.htm) or a [boundFunc object](https://www.autohotkey.com/docs/objects/Functor.htm#BoundFunc). In the latter case, stucked bound references, if any, are freed at the time the `dispose` instance's own method is called.
 
 
 ###### onCompletion callback
@@ -304,7 +308,7 @@ eA.onReplacement := Func("myReplacementEventMonitor")
 ```
 ***
 
-Associate a function with the `replacement` event. This would cause the function to be launched automatically whenever the user is about to perform a replacement by long pressing either the `Tab`/`Enter` key (first suggestion's associated replacement string) or the `Shift+Tab`/`Shift+Enter` hotkey (second suggestion's associated replacement string). The event fires before the replacement string has been actually sent to the edit control - the return value of the function being actually used as the actual replacement string. This can be used to allow dynamic replacements, such as when replacement strings come from a translation API, as an example.
+Associate a function with the `replacement` event. This would cause the function to be launched automatically whenever the user is about to perform a replacement by long pressing either the `Tab`/`Enter` key (first suggestion's associated replacement string) or the `Shift+Tab`/`Shift+Enter` hotkey (second suggestion's associated replacement string). The event fires before the replacement string has been actually sent to the host control - the return value of the function being actually used as the actual replacement string. This can be used to allow dynamic replacements, such as when replacement strings come from a translation API, as an example.
 
 - The function can optionally accept the following parameters:
 ``replacementText := myReplacementEventMonitor(_suggestionText, _tabIndex)``
