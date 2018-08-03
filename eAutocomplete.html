@@ -19,7 +19,7 @@
 {"name":"eAutocomplete","description":"The class enables users to quickly find, get info tips and select from a dynamic pre-populated list of data (e.g. complete strings, replacement strings) as they type in an Edit control, leveraging typing, definition lookups, searching, translation, filtering etc.","@type":"WebSite","url":"https://a-ahkuser.github.io/eAutocomplete/","headline":"eAutocomplete","@context":"http://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
-    <link rel="stylesheet" href="/eAutocomplete/assets/css/style.css?v=029fa3c24a39efcee2468e401a5d193afc9fbd52">
+    <link rel="stylesheet" href="/eAutocomplete/assets/css/style.css?v=a84643ba3babea9d8db62e41dc4a940372ea3dfb">
   </head>
   <body>
     <div class="container-lg px-3 my-5 markdown-body">
@@ -29,16 +29,10 @@
 <h6 id="autohotkey-v12900">AutoHotkey v1.29.00+</h6>
 <hr />
 
-<p>The class provides a programmable interface allowing to easily integrate a custom word autocomplete function in a given script or project. Any Edit* control should be able to be wrapped into an eAutocomplete object. Practically, it enables users to quickly find, get info tips and select from a dynamic pre-populated list of data (<em>e.g.</em> complete strings, replacement strings) as he types, leveraging typing, definition lookups, searching, translation, filtering <em>etc.</em></p>
-
-<blockquote>
-  <p>* A support for RICHEDIT50W controls already exits internally and will be made available soon.</p>
-</blockquote>
-
 <h4 id="download-the-latest-release">Download the <a href="https://github.com/A-AhkUser/eAutocomplete/releases">latest release</a></h4>
-<blockquote>
-  <p>note: <strong>Unlike the latest release, the master branch is NOT considered as fully tested on each commit.</strong></p>
-</blockquote>
+
+
+<p>The class provides a programmable interface allowing to easily integrate a custom word autocomplete function in a given script or project. Any Edit/RICHEDIT50W control should be able to be wrapped into an eAutocomplete object. Practically, it enables users to quickly find, get info tips and select from a dynamic pre-populated list of data (<em>e.g.</em> complete strings, replacement strings) as he types, leveraging typing, definition lookups, searching, translation, filtering <em>etc.</em></p>
 
 <h3 id="thanks-to">Thanks to:</h3>
 
@@ -83,7 +77,7 @@
 
 <hr />
 
-<p>Enables users, as typing in an Edit control, to quickly find and select from a dynamic pre-populated list of suggestions and, by this means, to expand/replace partially entered strings into/by complete strings. When a user starts to type in the edit control and a brief rest (225ms) occured since the last keystroke, the script starts searching for entries that match and should display complete strings to choose from, based both on earlier typed letters and the content of a <a href="#custom-databases">custom list</a>. If the host edit control is a single-line edit control, the list of choices is displayed beneath the control, in the manner of a combobox list (and, in this case, items can be clicked).</p>
+<p>Enables users, as typing in an Edit/RICHEDIT50W control, to quickly find and select from a dynamic pre-populated list of suggestions and, by this means, to expand/replace partially entered strings into/by complete strings. When a user starts to type in the edit control and a brief rest (225ms) occured since the last keystroke, the script starts searching for entries that match and should display complete strings to choose from, based both on earlier typed letters and the content of a <a href="#custom-databases">custom list</a>. If the host edit control is a single-line edit control, the list of choices is displayed beneath the control, in the manner of a combobox list (and, in this case, items can be clicked).</p>
 
 <ul>
   <li>Press the <code class="highlighter-rouge">Tab</code> key to complete a pending word with the selected suggestion (the top most suggestion is selected by default).</li>
@@ -109,7 +103,7 @@ Specify <code class="highlighter-rouge">.</code> (that is, a dot) as one of the 
 <ul>
   <li>Download the <a href="https://github.com/A-AhkUser/eAutocomplete/releases">latest release</a> and extract the content of the zip file to a location of your choice, for example into your project’s folder hierarchy.</li>
   <li>Load the library (<code class="highlighter-rouge">\eAutocomplete.ahk</code>) by means of the <a href="https://www.autohotkey.com/docs/commands/_Include.htm">#Include directive</a>.</li>
-  <li>You can either <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#create-method">create</a> an <code class="highlighter-rouge">eAutocomplete</code> control (that is, add a custom edit control and its wrapper to an existing ahk GUI window) or endow with word completion feature an existing edit control (<em>e.g</em> <em>Notepad</em>’s one) by means of the <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#attach-method">attach method</a> - both methods returning a new instance of <code class="highlighter-rouge">eAutocomplete</code>.</li>
+  <li>You can either <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#create-method">create</a> an <code class="highlighter-rouge">eAutocomplete</code> control (that is, add a custom edit control and its wrapper to an existing ahk GUI window) or endow with word completion feature an existing edit control (<em>e.g</em> <em>Notepad</em>’s one) or an existing rich edit control (<em>e.g</em> <em>Wordpad</em>’s one) by means of the <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#attach-method">attach method</a> - both methods returning a new instance of <code class="highlighter-rouge">eAutocomplete</code>.</li>
 </ul>
 
 <h4 id="sample-example">Sample example</h4>
@@ -126,7 +120,9 @@ jour	day	день
 )
 /* 
 Autocompletion data are assumed to be described in a linefeed-separated list of a TSV-formatted lines.
-A line can describe up to three items, in a tabular structure
+A line can describe up to three items, in a tabular structure:
+- the first tab-separated item represents the string value which is intended to be displayed in the drop-down list, as an actual suggestion.
+- the other two items represent potential replacement strings - aside from being able to be displayed as info tips.
 */
 eAutocomplete.setSourceFromVar("mySource", list)
 ; Creates a new autocomplete dictionary from an input string, storing it directly in the base object.
@@ -164,7 +160,7 @@ ExitApp
       <td style="text-align: left">The host <a href="https://www.autohotkey.com/docs/misc/WinTitle.htm#ahk_id">window’s HWND</a>.</td>
     </tr>
     <tr>
-      <td style="text-align: left"><code class="highlighter-rouge">_editOptions</code> <em>OPTIONAL</em> [HWND]</td>
+      <td style="text-align: left"><code class="highlighter-rouge">_editOptions</code> <em>OPTIONAL</em> [STRING]</td>
       <td style="text-align: left">The <a href="https://www.autohotkey.com/docs/commands/GuiControls.htm#Edit_Options">edit control’s options</a>. The <code class="highlighter-rouge">+Resize</code> option may be listed in <code class="highlighter-rouge">options</code> to allow the user to resize both the height and width of the edit control.</td>
     </tr>
     <tr>
@@ -180,7 +176,7 @@ ExitApp
 <pre><code class="language-Python">eA := eAutocomplete.attach(_hHostControl, _options:="")
 </code></pre>
 <hr />
-<p><em>The <code class="highlighter-rouge">attach</code> method throws an exception upon failure (such as if the host control is not a representative of the class <code class="highlighter-rouge">Edit</code>).</em></p>
+<p><em>The <code class="highlighter-rouge">attach</code> method throws an exception upon failure (such as if the host control is not a representative of the class <code class="highlighter-rouge">Edit/RICHEDIT50W</code>).</em></p>
 
 <table>
   <thead>
@@ -204,7 +200,7 @@ ExitApp
 <h3 id="options">Options</h3>
 <hr />
 
-<h6 id="all-keys-may-at-any-time-be-modified-after-the-instance-is-created-by-setting-the-value-of-the-respective-property-on-a-side-note-the-runtime-readonly-properties-eahwndeaahkid-and-ealistboxhwndeaahkid-contain-respectively-the-host-control-and-the-drop-down-list-controls-hwndahkid">All keys may at any time be modified after <a href="#create-base-method">the instance is created</a> by setting the value of the respective <a href="https://www.autohotkey.com/docs/Objects.htm#Usage_Objects">property</a>. On a side note, the runtime readonly properties <code class="highlighter-rouge">eA.HWND</code>/<code class="highlighter-rouge">eA.AHKID</code> and <code class="highlighter-rouge">eA.listbox.HWND</code>/<code class="highlighter-rouge">eA.AHKID</code> contain respectively the host control and the drop-down list control’s HWND/AHKID.</h6>
+<h6 id="all-keys-may-at-any-time-be-modified-after-the-instance-is-created-by-setting-the-value-of-the-respective-property-on-a-side-note-the-runtime-readonly-properties-eahwndeaahkid-and-ealistboxhwndealistboxahkid-contain-respectively-the-host-control-and-the-drop-down-list-controls-hwndahkid">All keys may at any time be modified after <a href="#create-base-method">the instance is created</a> by setting the value of the respective <a href="https://www.autohotkey.com/docs/Objects.htm#Usage_Objects">property</a>. On a side note, the runtime readonly properties <code class="highlighter-rouge">eA.HWND</code>/<code class="highlighter-rouge">eA.AHKID</code> and <code class="highlighter-rouge">eA.listbox.HWND/eA.listbox.AHKID</code> contain respectively the host control and the drop-down list control’s HWND/AHKID.</h6>
 
 <table>
   <thead>
@@ -282,12 +278,12 @@ ExitApp
     </tr>
     <tr>
       <td style="text-align: center"><code class="highlighter-rouge">onCompletion</code></td>
-      <td style="text-align: left">Associate a function with the <code class="highlighter-rouge">completion</code> event, which is user-side. This can be used, for example, to an launch a search engine when the user has selected an item. See also: <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling">Event handling</a>.</td>
+      <td style="text-align: left">Associate a function with the <code class="highlighter-rouge">completion</code> event. This can be used, for example, to an launch a search engine when the user has selected an item. See also: <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling">Event handling</a>.</td>
       <td style="text-align: center"><code class="highlighter-rouge">""</code></td>
     </tr>
     <tr>
       <td style="text-align: center"><code class="highlighter-rouge">onReplacement</code></td>
-      <td style="text-align: left">Associate a function with the <code class="highlighter-rouge">replacement</code> event, which is user-side. This can be used to allow dynamic replacements, such as when replacement strings come from a translation API, as an example. See also: <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling">Event handling</a>.</td>
+      <td style="text-align: left">Associate a function with the <code class="highlighter-rouge">replacement</code> event. This can be used to allow dynamic replacements, such as when replacement strings come from a translation API, as an example. See also: <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling">Event handling</a>.</td>
       <td style="text-align: center"><code class="highlighter-rouge">""</code></td>
     </tr>
     <tr>
@@ -297,7 +293,7 @@ ExitApp
     </tr>
     <tr>
       <td style="text-align: center"><code class="highlighter-rouge">onSuggestionLookUp</code></td>
-      <td style="text-align: left">Associate a function with the <code class="highlighter-rouge">suggestionLookUp</code> event, which is user-side. This can be used to allow dynamic description lookups such as when description strings come from a dictionary API, as an example. See also: <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling">Event handling</a>.</td>
+      <td style="text-align: left">Associate a function with the <code class="highlighter-rouge">suggestionLookUp</code> event. This can be used to allow dynamic description lookups such as when description strings come from a dictionary API, as an example. See also: <a href="https://github.com/A-AhkUser/eAutocomplete/blob/master/README.md#event-handling">Event handling</a>.</td>
       <td style="text-align: center"><code class="highlighter-rouge">""</code></td>
     </tr>
     <tr>
@@ -307,12 +303,12 @@ ExitApp
     </tr>
     <tr>
       <td style="text-align: center"><code class="highlighter-rouge">listbox.bkColor</code></td>
-      <td style="text-align: left">Sets the background color of the drop-down list.</td>
+      <td style="text-align: left">Sets the background color of the drop-down list by specifying one of the 16 primary <a href="https://www.autohotkey.com/docs/commands/Progress.htm#colors">HTML color names</a> or a 6-digit RGB color value.</td>
       <td style="text-align: center"><code class="highlighter-rouge">FFFFFF</code></td>
     </tr>
     <tr>
       <td style="text-align: center"><code class="highlighter-rouge">listbox.fontColor</code></td>
-      <td style="text-align: left">Sets the font color for the drop-down list.</td>
+      <td style="text-align: left">Sets the font color for the drop-down list by specifying one of the 16 primary <a href="https://www.autohotkey.com/docs/commands/Progress.htm#colors">HTML color names</a> or a 6-digit RGB color value.</td>
       <td style="text-align: center"><code class="highlighter-rouge">000000</code></td>
     </tr>
     <tr>
@@ -357,7 +353,9 @@ ExitApp
 <hr />
 
 <h4 id="autocompletion-data-are-assumed-to-be-described-in-a-linefeed-separated-list-of-a-tsv-formatted-lines-a-line-can-describe-up-to-three-items-in-a-tabular-structure">Autocompletion data are assumed to be described in a linefeed-separated list of a TSV-formatted lines. A line can describe up to three items, in a tabular structure:</h4>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>автомобиль	véhicule	voiture
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>лето		summer		прекрасное лето - great summer`r`nпроводить лето - to summer
+		this is a comment
+ this is a comment
 </code></pre></div></div>
 <h4 id="in-particular-in-this-case">In particular, in this case:</h4>
 <ul>
@@ -365,7 +363,7 @@ ExitApp
   <li>the other two items represent potential replacement strings - aside from being able to be displayed as info tips.</li>
 </ul>
 
-<p>Both the second and the third items may be omitted (that is, a line may consist in a single field, whether it is a word or a group of word) - while specifying an empty string in between two tab-separated values (that is, two consecutive tab characters) allows to omit the second item while being able to use the third one as third. Also, each line may be commented out by prefixing it by one or more space (or tab) characters.
+<p>Both the second and the third items may be omitted (that is, a line may consist in a single field, whether it is a word or a group of word) - while specifying an empty string in between two tab-separated values (that is, two consecutive tab characters) allows to omit the second item while being able to use the third one as third. Description/replacement strings can be multiline text strings - however, in this case, both the newline (linefeed/LF) and the carriage return (CR) characters must be <a href="https://www.autohotkey.com/docs/commands/_EscapeChar.htm">escaped</a>. Also, each line may be commented out by prefixing it by one or more space (or tab) characters.
 &lt;/br&gt;</p>
 
 <p><em>note: A linefeed-separated list of a TSV-formatted lines can be built in particular from your google drive or you office suite - from a spreadsheet by saving it as… <code class="highlighter-rouge">.csv</code> (and specifying, if need be, a tabulation as field separator)</em>.</p>
@@ -428,7 +426,7 @@ ExitApp
     </tr>
     <tr>
       <td style="text-align: left"><code class="highlighter-rouge">_fileFullPath</code></td>
-      <td style="text-align: left">The absolute path of the file to read (note: <strong>its content will be overwritten and replaced by an indexed list of suggestion items, either at the time the source is replaced by a new one by setting the eponymous property or at the time the <code class="highlighter-rouge">dispose</code> method is called</strong>).</td>
+      <td style="text-align: left">The absolute path of the file to read (note: <strong>its content will be overwritten and replaced by a sorted list of suggestion items, either at the time the source is replaced by a new one by setting the eponymous property or at the time the <code class="highlighter-rouge">dispose</code> method is called</strong>).</td>
     </tr>
   </tbody>
 </table>
@@ -477,7 +475,7 @@ eA.listbox.setOptions(_options)
   <li><code class="highlighter-rouge">onSize</code></li>
 </ul>
 
-<p>The value can be either the name of a function, a function reference or a boundFunc object. In the latter case, stucked bound references, if any, are freed at the time the <code class="highlighter-rouge">dispose</code> instance’s own method is called.</p>
+<p>The value can be either the name of a function, a <a href="https://www.autohotkey.com/docs/commands/Func.htm">function reference</a> or a <a href="https://www.autohotkey.com/docs/objects/Functor.htm#BoundFunc">boundFunc object</a>. In the latter case, stucked bound references, if any, are freed at the time the <code class="highlighter-rouge">dispose</code> instance’s own method is called.</p>
 
 <h6 id="oncompletion-callback">onCompletion callback</h6>
 
@@ -552,7 +550,7 @@ eA.listbox.setOptions(_options)
 </code></pre>
 <hr />
 
-<p>Associate a function with the <code class="highlighter-rouge">replacement</code> event. This would cause the function to be launched automatically whenever the user is about to perform a replacement by long pressing either the <code class="highlighter-rouge">Tab</code>/<code class="highlighter-rouge">Enter</code> key (first suggestion’s associated replacement string) or the <code class="highlighter-rouge">Shift+Tab</code>/<code class="highlighter-rouge">Shift+Enter</code> hotkey (second suggestion’s associated replacement string). The event fires before the replacement string has been actually sent to the edit control - the return value of the function being actually used as the actual replacement string. This can be used to allow dynamic replacements, such as when replacement strings come from a translation API, as an example.</p>
+<p>Associate a function with the <code class="highlighter-rouge">replacement</code> event. This would cause the function to be launched automatically whenever the user is about to perform a replacement by long pressing either the <code class="highlighter-rouge">Tab</code>/<code class="highlighter-rouge">Enter</code> key (first suggestion’s associated replacement string) or the <code class="highlighter-rouge">Shift+Tab</code>/<code class="highlighter-rouge">Shift+Enter</code> hotkey (second suggestion’s associated replacement string). The event fires before the replacement string has been actually sent to the host control - the return value of the function being actually used as the actual replacement string. This can be used to allow dynamic replacements, such as when replacement strings come from a translation API, as an example.</p>
 
 <ul>
   <li>The function can optionally accept the following parameters:
