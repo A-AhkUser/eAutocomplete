@@ -1,4 +1,5 @@
-﻿Class eAutocomplete {
+﻿#Include %A_LineFile%/../acc.ahk
+Class eAutocomplete {
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PRIVATE NESTED CLASSES ~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,7 +48,7 @@
 			__New(_hkIfFuncObject, _keyName, _func) {
 				this.ifFuncObj := _hkIfFuncObject, this.keyName := _keyName
 				Hotkey, If, % _hkIfFuncObject
-					Hotkey % _keyName, % _func, On
+					Hotkey % _keyName, % _func, On T1 I0 B0
 				Hotkey, If
 			}
 			unregister() {
@@ -239,7 +240,7 @@
 				return this._bkColor
 				}
 				else if (_k = "tabStops") {
-					if _v is integer
+					if not (mod(_v, 8))
 						GuiControl, % "+t" . this["_" . _k]:=_v, % this._HWND
 				return this["_" . _k]
 				}
@@ -590,8 +591,8 @@
 		DetectHiddenWindows, On
 		WinGetClass, _class, % "ahk_id " . _hHostControl
 		DetectHiddenWindows % _detectHiddenWindows
-		if not (_class = "Edit") ; <<<<
-			throw Exception("The host control either does not exist or is not a representative of the class Edit.")
+		if not ((_class = "Edit") || (_class = "RICHEDIT50W"))
+			throw Exception("The host control either does not exist or is not a representative of the class Edit/RICHEDIT50W.")
 		_GUIID := DllCall("User32.dll\GetAncestor", "Ptr", _hHostControl, "UInt", 2, "Ptr")
 		ControlGet, _style, Style,,, % "ahk_id " . _hHostControl
 		_isComboBox := not (_style & 0x4) ; ES_MULTILINE
@@ -645,10 +646,9 @@
 		; ========================================
 		eAutocomplete._Value.registerProc(this._idProcess)
 		eAutocomplete._EventObject(this._listbox, "_onSelection", ObjBindMethod(this, "_listboxSelectionEventMonitor"))
-
 		; ========================================
 		_hkIfFuncObject := this._hkIfFuncObject := this._hotkeyPressHandler.bind("", _hHostControl)
-		eAutocomplete._Hotkey(_hkIfFuncObject, "Escape", ObjBindMethod(this._listbox, "_hideDropDown"))
+		eAutocomplete._Hotkey(_hkIfFuncObject, "Escape", ObjBindMethod(this._listbox, "_dismiss"))
 		eAutocomplete._Hotkey(_hkIfFuncObject, "Up", ObjBindMethod(_listbox, "_selectUp"))
 		eAutocomplete._Hotkey(_hkIfFuncObject, "Down", ObjBindMethod(_listbox, "_selectDown"))
 		eAutocomplete._Hotkey(_hkIfFuncObject, "Left", Func("WinActive"))
@@ -691,7 +691,7 @@
 		_rightPart := "?P<rightPart>[^\s" . this._endKeys . this._regExSymbol . "]+"
 		_match := "?P<match>(" . _leftPart . ")(" . _isRegex . ")(" . _rightPart . ")"
 		_isComplete := "?P<isComplete>[\s" . this._endKeys . "]?"
-		RegExMatch(SubStr(_content, 1, _caretPos), "`nOi)(" . _match . ")(" . _isComplete . ")$", _pendingWord)
+		RegExMatch(SubStr(_content, 1, _caretPos), "`aOi)(" . _match . ")(" . _isComplete . ")$", _pendingWord)
 		for _subPatternName, _subPatternObject in _wrapper
 			for _property in _subPatternObject, _o := _wrapper[_subPatternName]
 				_o[_property] := _pendingWord[_property](_subPatternName)
@@ -762,7 +762,8 @@
 		CoordMode, ToolTip, % _coordModeToolTip
 	}
 	__onSuggestionLookUp(_value, _tabIndex) {
-	return this._completionData[ _tabIndex + 1 ]
+		_infoTipText := this._completionData[ _tabIndex + 1 ]
+	return StrReplace(StrReplace(_infoTipText, "``n", "`n"), "``r", "`r")
 	}
 
 	_complete(_goToNewLine, _tabIndex:="") {
@@ -786,8 +787,7 @@
 		_pendingWord := this._pendingWord
 		if (_pendingWord.isRegEx.len) {
 			StringTrimLeft, _missingPart, % this._completionData.1, % _pendingWord.leftPart.len
-			_pos := _pendingWord.isRegEx.pos - 1
-			this._setSelection(_pos, _pos + 1 + _pendingWord.rightPart.len) ; <<<<
+			eAutocomplete._Value._rawSend("{BS " . 1 + _pendingWord.rightPart.len . "}", this._HWND)
 		} else {
 			StringTrimLeft, _missingPart, % this._completionData.1, % StrLen(_pendingWord.match.value)
 		}
@@ -795,8 +795,7 @@
 	}
 	_replace(_tabIndex) {
 		(!this._completionData && this._completionData:=this._listbox._getCurrentItemData())
-		_pendingWord := this._pendingWord, _start := _pendingWord.match.pos - 1
-		this._setSelection(_start + StrLen(_pendingWord.match.value), _start) ; <<<<
+		eAutocomplete._Value._rawSend("{BS " . StrLen(this._pendingWord.match.value) . "}", this._HWND)
 		_value := this._completionData[ _tabIndex + 1 ] := this._onReplacement.call(this._completionData.1, _tabIndex)
 		eAutocomplete._Value._rawPaste(_value, this._HWND)
 	}
@@ -812,24 +811,6 @@
 		_startSel := NumGet(_startPos), _endSel := NumGet(_endPos)
 	return _endSel
 	}
-	_setSelection(_startSel:=-1, _endSel:=0) { ; <<<<
-	static EM_SETSEL := 0xB1
-	SendMessage % EM_SETSEL, % _startSel, % _endSel,, % this._AHKID
-	}
-	; RICH EDIT ================================================
-	; _getRichSelection(ByRef _startSel:="", ByRef _endSel:="") { ; https://github.com/AHK-just-me/Class_RichEdit/blob/master/Sources/Class_RichEdit.ahk
-		; static EM_EXGETSEL := 0x0434
-		; VarSetCapacity(_CHARRANGE_, 8, 0)
-		; SendMessage % EM_EXGETSEL, 0, &_CHARRANGE_,, % this._AHKID
-		; _startSel := NumGet(_CHARRANGE_, 0, "Int"), _endSel := NumGet(_CHARRANGE_, 4, "Int")
-	; return _endSel
-	; }
-	; _setRichSelection() { ; https://github.com/AHK-just-me/Class_RichEdit/blob/master/Sources/Class_RichEdit.ahk
-		; static EM_EXSETSEL := 0x0437
-		; VarSetCapacity(_CHARRANGE_, 8, 0)
-		; NumPut(_startSel, _CHARRANGE_, 0, "Int"), NumPut(_endSel, _CHARRANGE_, 4, "Int")
-		; SendMessage % EM_EXSETSEL, 0, &_CHARRANGE_,, % this._AHKID
-	; }
 	; -----------------------------------------------------------------------------------------------
 
 	__resize(_hEditLowerCornerHandle) {
@@ -887,7 +868,7 @@
 		_listbox := _inst._listbox
 		if not (_listbox._visible) {
 			if ((_thisHotkey = "Down") && _listbox._itemCount)
-				_inst._listbox._showDropDown()
+				return true, _inst._listbox._showDropDown()
 			return false
 		}
 		return true
@@ -898,10 +879,6 @@
 		static processes := {}
 		static lastFoundControl := 0x0
 		static bypassToggle := false
-		; static EVENT_OBJECT_VALUECHANGE := 0x800E
-		; static EVENT_OBJECT_FOCUS := 0x800E
-		; static EVENT_SYSTEM_SWITCHEND := 0x0015
-		; static EVENT_SYSTEM_MOVESIZESTART := 0x8005 ; *
 
 		registerProc(_idProcess) {
 			if not (eAutocomplete._Value.processes.hasKey(_idProcess)) {
@@ -924,16 +901,21 @@
 				DllCall("User32.dll\UnhookWinEvent", "Ptr", _hWinEventHook)
 			eAutocomplete._Value.processes.delete(_idProcess)
 		}
-		_rawPaste(_string, _hwnd) {
+		_rawSend(_keys, _hwnd) {
 		_state := eAutocomplete._Value.bypassToggle
 		eAutocomplete._Value.bypassToggle := true
-		Control, EditPaste, % _string,, % "ahk_id " . _hwnd ; <<<<
+		_keyDelay := A_KeyDelay
+		SetKeyDelay, 0
+		ControlSend,, % _keys, % "ahk_id " . _hwnd
+		sleep, 300 ;  check messages of the internal message queue
+		SetKeyDelay % _keyDelay
 		eAutocomplete._Value.bypassToggle := _state
 		}
-		_rawSend(_key, _hwnd) {
+		_rawPaste(_text, _hwnd) {
 		_state := eAutocomplete._Value.bypassToggle
 		eAutocomplete._Value.bypassToggle := true
-		ControlSend,, % _key, % "ahk_id " . _hwnd
+		Control, EditPaste, % StrReplace(StrReplace(_text, "``n", "`n"), "``r", "`r"),, % "ahk_id " . _hwnd
+		sleep, 300 ;  check messages of the internal message queue
 		eAutocomplete._Value.bypassToggle := _state
 		}
 		; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -967,15 +949,11 @@
 					_inst := eAutocomplete._instances[_hwnd]
 					Critical
 					; ACC ================================================
-					; _acc := Acc_ObjectFromEvent(_idChild_, _hwnd, _idObject, _idChild)
-					; try _role := _acc.accRole(_idChild)
-					; if not (_role = 0x2A) ; TEXT
-						; return
-					; try _inst._content := _acc.accValue(0)
+					_acc := Acc_ObjectFromEvent(_idChild_, _hwnd, _idObject, _idChild)
+					try _inst._content := _acc.accValue(0)
 					; ACC ================================================
-					; ToolTip % GetKeyState("Space") "," GetKeyState("Enter")
-					ControlGetText, _text,, % _inst._AHKID
-					_inst._content := _text
+					; ControlGetText, _text,, % _inst._AHKID
+					; _inst._content := _text
 					if (!_inst._disabled) {
 						eAutocomplete._Iterator.instances[_inst._HWND].1.setPeriod(-(3 + !_inst._ready) * 75)
 					}
@@ -987,15 +965,3 @@
 	}
 
 }
-; ACC ================================================
-; Acc_Init() {
-; static _h := ""
-	; IfNotEqual, _h,, return
-	; _h := DllCall("LoadLibrary", "Str", "Oleacc.dll", "UPtr")
-; }
-; Acc_ObjectFromEvent(ByRef _idChild_, _hWnd, _idObject, _idChild) {
-	; static VT_DISPATCH := 9
-	; Acc_Init(), _pAcc := ""
-	; if (DllCall("Oleacc.dll\AccessibleObjectFromEvent", "Ptr", _hWnd, "UInt", _idObject, "UInt", _idChild, "PtrP", _pAcc, "Ptr", VarSetCapacity(_varChild, 8 + 2 * A_PtrSize, 0) * 0 + &_varChild) = 0)
-		; return ComObj(VT_DISPATCH, _pAcc, 1), _idChild_ := NumGet(_varChild, 8, "UInt")
-; }
