@@ -766,7 +766,7 @@ Class eAutocomplete {
 	return StrReplace(StrReplace(_infoTipText, "``n", "`n"), "``r", "`r")
 	}
 
-	_complete(_goToNewLine, _tabIndex:="") {
+	_complete(_goToNewLine, _tabIndex:=1) {
 		static _keys := {}
 		if (_isReplacement:=A_ThisHotkey <> "") {
 			if not (_keys.hasKey(A_ThisHotkey)) {
