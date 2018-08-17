@@ -43,8 +43,8 @@ The class provides a programmable interface allowing to easily integrate a custo
 
 <table align="center">
 	<tr>
-		<td><img src="https://raw.githubusercontent.com/A-AhkUser/AHK-forums/master/eAutocomplete/eAutocomplete_cb.png" /></td>
-		<td><img src="https://raw.githubusercontent.com/A-AhkUser/AHK-forums/master/eAutocomplete/eAutocomplete2.gif" /></td>
+	<td><img src="https://raw.githubusercontent.com/A-AhkUser/AHK-forums/master/eAutocomplete/GUI_Edit_.gif" /></td>
+	<td><img src="https://raw.githubusercontent.com/A-AhkUser/AHK-forums/master/eAutocomplete/wordpad_.gif.gif" /></td>
 	</tr>
 </table>
 
