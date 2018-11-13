@@ -7,7 +7,7 @@ SendMode, Input
 
 #Include %A_ScriptDir%\eAutocomplete.ahk
 
-for source, url in {"WordList English Gutenberg": "https://raw.githubusercontent.com/sl5net/global-IntelliSense-everywhere/master/Wordlists/_globalWordLists/languages/WordList%20English%20Gutenberg.txt"
+for source, url in {"Autocompletion_en": "https://raw.githubusercontent.com/A-AhkUser/keypad-library/master/Keypad/Autocompletion/en"
 					, "Autocompletion_fr": "https://raw.githubusercontent.com/A-AhkUser/keypad-library/master/Keypad/Autocompletion/fr"} {
 if not (FileExist(filename:=A_ScriptDir . "\" . source . ".txt"))
 	UrlDownloadToFile % url, % filename
@@ -49,7 +49,7 @@ options :=
 		onResize: "test_onResize",
 		onSuggestionLookUp: "test_onSelectionLookUp",
 		regExSymbol: "*",
-		source: "WordList English Gutenberg",
+		source: "Autocompletion_en",
 		suggestAt: 2
 	}
 )
