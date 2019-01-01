@@ -217,14 +217,13 @@ Class eAutocomplete {
 						this._hFont := DllCall("SelectObject", "UPtr", this._hDC, "UPtr", ErrorLevel, "UPtr")
 						SendMessage, 0x1A1, 0, 0,, % this._AHKID
 						this._itemHeight := ErrorLevel
-						this._autoWH(this._list)
 					}
 				return this["_" . _k]
 				}
 				else if (_k = "maxSuggestions") {
 					_COUNTUPPERTHRESHOLD := eAutocomplete._ListBox._COUNTUPPERTHRESHOLD
 					if _v between 1 and %_COUNTUPPERTHRESHOLD%
-						return this._maxSuggestions:=Floor(_v), this._autoWH(this._list)
+						return this._maxSuggestions:=Floor(_v)
 					else return this._maxSuggestions
 				}
 				else if (_k = "transparency") {
@@ -252,7 +251,7 @@ Class eAutocomplete {
 			if (eAutocomplete._Listbox._properties.hasKey(_k))
 				return this["_" . _k]
 		}
-		_hasHScrollBar {
+		_hasVScrollBar {
 			get {
 			return !(this._itemCount <= this._maxSuggestions)
 			}
@@ -273,11 +272,10 @@ Class eAutocomplete {
 			}
 			this._itemCount := _count
 			GuiControl,, % this._HWND, % "`n" . this._list:=_list
-			this._autoWH(_list)
 			this._selection := new eAutocomplete._ListBox._SelectionWrapper(this._HWND)
 		}
 		_getHeight() {
-			_rows := (this._hasHScrollBar) ? this._maxSuggestions : this._itemCount
+			_rows := (this._hasVScrollBar) ? this._maxSuggestions : this._itemCount
 		return (_rows + 1) * this._itemHeight
 		}
 		Class _SelectionWrapper {
@@ -334,14 +332,9 @@ Class eAutocomplete {
 			WinSet, Redraw
 			WinExist("ahk_id " . _hLastFoundWindow)
 		}
-		_showDropDown() {
-		this._autoXY(), this._show()
-		}
-		_hideDropDown() {
-		this._show(false)
-		}
+
 		_dismiss() {
-		this._setData(""), this._hideDropDown()
+		this._setData("")
 		}
 
 		__select(_hwnd:="", _event:="") {
@@ -379,7 +372,29 @@ Class eAutocomplete {
 		}
 
 	}
-	Class _DropDownList extends eAutocomplete._ListBox {
+	Class _DynamicMenu extends eAutocomplete._ListBox {
+
+		__New(_GUIID, _hHostControl) {
+			base.__New(_GUIID, _hHostControl)
+		}
+		_show(_boolean:=true) {
+			base._show(_boolean), this._autoXY()
+		}
+		_dismiss() {
+			base._dismiss(), this._show(false)
+		}
+		_setData(_list) {
+			base._setData(_list), this._autoWH(_list)
+		}
+
+		__Set(_k, _v) {
+			base.__Set(_k, _v)
+			if ((_k = "fontName") || (_k = "fontSize") || (_k = "fontColor") || (_k = "maxSuggestions"))
+				this._autoWH(this._list)
+		}
+
+	}
+	Class _DropDownList extends eAutocomplete._DynamicMenu {
 
 		__New(_GUIID, _hHostControl) {
 			base.__New(_GUIID, _hHostControl)
@@ -398,7 +413,7 @@ Class eAutocomplete {
 				((_size > _w) && _w:=_size)
 			}
 			ListLines % _listLines ? "On" : "Off"
-		return _w, (_w && _w += 10 + this._hasHScrollBar * SM_CXVSCROLL)
+		return _w, (_w && _w += 10 + this._hasVScrollBar * SM_CXVSCROLL)
 		}
 		_autoWH(_params*) {
 			_w := this._lastWidth := this._getWidth(_params.1), _h := this._getHeight()
@@ -418,7 +433,7 @@ Class eAutocomplete {
 		}
 
 	}
-	Class _ComboBoxList extends eAutocomplete._ListBox {
+	Class _ComboBoxList extends eAutocomplete._DynamicMenu {
 
 		__New(_GUIID, _hHostControl) {
 			base.__New(_GUIID, _hHostControl)
@@ -674,9 +689,9 @@ Class eAutocomplete {
 			_match := this._pendingWord.match.value
 			if (_match <> this._listbox._getCurrentItemData().1)
 				this.__hapax(_match, this._pendingWord.match.len)
-			this._listbox._hideDropDown()
+			this._listbox._dismiss()
 		} else { ; 0
-			this._listbox._hideDropDown()
+			this._listbox._dismiss()
 		}
 		this._ready := true
 	}
@@ -738,7 +753,7 @@ Class eAutocomplete {
 	}
 	_suggest() {
 		; if (!this._isComboBox || !this._listbox._visible)
-			this._listbox._showDropDown()
+			this._listbox._show()
 		this._listbox._selectDown()
 	}
 
@@ -868,7 +883,7 @@ Class eAutocomplete {
 		_listbox := _inst._listbox
 		if not (_listbox._visible) {
 			if ((_thisHotkey = "Down") && _listbox._itemCount)
-				return true, _inst._listbox._showDropDown()
+				return true, _inst._listbox._show()
 			return false
 		}
 		return true
@@ -931,7 +946,7 @@ Class eAutocomplete {
 			; f(_hwnd)
 			for _each, _instance in eAutocomplete._instances {
 				if (_instance._listbox._visible) {
-					_instance._listbox._hideDropDown()
+					_instance._listbox._dismiss()
 				break
 				}
 			}
