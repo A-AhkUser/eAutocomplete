@@ -196,6 +196,10 @@ Class eAutocomplete {
 			GUI, Add, ListBox, % "x0 y0 -HScroll +VScroll hwnd_hListBox t" . eAutocomplete._ListBox._properties.tabStops,
 			this._AHKID := "ahk_id " . (this._HWND:=_hListBox)
 			GUI, %_GUI%:Default
+			; ==============
+			_fn := this.__select.bind(this)
+			GuiControl, +g, % this._HWND, % _fn
+			; ==============
 			this.fontName := eAutocomplete._ListBox._properties.fontName
 			this._selection := new eAutocomplete._ListBox._SelectionWrapper(this._HWND)
 
@@ -371,6 +375,15 @@ Class eAutocomplete {
 			DllCall("ReleaseDC", "UPtr", this._HWND, "UPtr", this._hDC)
 		}
 
+		; ========================
+		_dock() {
+			GUI % this._parent . ":+Parent" . this._owner . A_Space . "-E0x20"
+		}
+		_undock() {
+			GUI % this._parent . ":-Parent" . this._owner . A_Space . "+E0x20"
+		}
+		; ========================
+
 	}
 	Class _DynamicMenu extends eAutocomplete._ListBox {
 
@@ -398,7 +411,7 @@ Class eAutocomplete {
 
 		__New(_GUIID, _hHostControl) {
 			base.__New(_GUIID, _hHostControl)
-			GUI % this._parent . ":+E0x20"
+			this._undock()
 		}
 		_getWidth(_list) {
 			static SM_CXVSCROLL := DllCall("GetSystemMetrics", "UInt", 2)
@@ -437,9 +450,7 @@ Class eAutocomplete {
 
 		__New(_GUIID, _hHostControl) {
 			base.__New(_GUIID, _hHostControl)
-			GUI % this._parent . ":+Parent" . this._owner
-			_fn := this.__select.bind(this)
-			GuiControl, +g, % this._HWND, % _fn
+			this._dock()
 		}
 		_getWidth() {
 			ControlGetPos,,, _w,,, % "ahk_id " . this._host
@@ -644,7 +655,7 @@ Class eAutocomplete {
 			throw Exception("Could not retrieve the identifier of the process that created the host window.")
 		this._idProcess := _idProcess, this._parent := _GUIID, this._AHKID := "ahk_id " . (this._HWND:=_hHostControl)
 
-		_listBox := (this._isComboBox:=_isComboBox) ? eAutocomplete._ComboBoxList : eAutocomplete._DropDownList
+		_listBox := (_isComboBox) ? eAutocomplete._ComboBoxList : eAutocomplete._DropDownList
 		_listbox := this._listbox := new _listBox(_GUIID, _hHostControl)
 
 		this._source := eAutocomplete._Resource.table["Default"]
@@ -752,13 +763,17 @@ Class eAutocomplete {
 		}
 	}
 	_suggest() {
-		; if (!this._isComboBox || !this._listbox._visible)
+		if not (this._listbox._visible)
 			this._listbox._show()
 		this._listbox._selectDown()
 	}
 
 	_listboxSelectionEventMonitor(_selection, _clickEvent, _selectionHasChanged) {
-	(_selectionHasChanged && this._completionData:=""), (_clickEvent && this._complete(false))
+		(_selectionHasChanged && this._completionData:="")
+		if (_clickEvent) {
+			this._complete(false)
+			ControlFocus,, % this._AHKID
+		}
 	}
 	_completionDataLookUp(_tabIndex) {
 		static _keys := {}
@@ -886,7 +901,7 @@ Class eAutocomplete {
 				return true, _inst._listbox._show()
 			return false
 		}
-		return true
+		return _listbox._itemCount
 	}
 
 	Class _Value {
