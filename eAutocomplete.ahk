@@ -945,7 +945,7 @@ Class eAutocomplete {
 			; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			; f(_hwnd)
 			for _each, _instance in eAutocomplete._instances {
-				if (_instance._listbox._visible) {
+				if (_instance._listbox._visible && (_hwnd <> _instance._listbox._HWND)) {
 					_instance._listbox._dismiss()
 				break
 				}
