@@ -442,14 +442,9 @@ Class eAutocomplete {
 			try GUI % this._parent . ":-Parent"
 			GuiControl -g, % this._HWND
 			eAutocomplete._EventObject(this)
-			; ===========
-			try GUI % this._parent . ":Destroy"
-			DllCall("SelectObject", "UPtr", this._hDC, "UPtr", this._hFont, "UPtr")
-			DllCall("ReleaseDC", "UPtr", this._HWND, "UPtr", this._hDC)
-			; ===========
 		}
 		__Delete() {
-			MsgBox % A_ThisFunc
+			; MsgBox % A_ThisFunc
 			try GUI % this._parent . ":Destroy"
 			DllCall("SelectObject", "UPtr", this._hDC, "UPtr", this._hFont, "UPtr")
 			DllCall("ReleaseDC", "UPtr", this._HWND, "UPtr", this._hDC)
@@ -670,7 +665,7 @@ Class eAutocomplete {
 		this._listbox._dispose()
 	}
 	__Delete() {
-		MsgBox % A_ThisFunc
+		; MsgBox % A_ThisFunc
 	}
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PUBLIC BASE OBJECT METHODS ~~~~~~~~~~~~~
