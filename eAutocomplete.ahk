@@ -81,6 +81,81 @@ Class eAutocomplete {
 			this.unregister()
 			}
 		}
+
+		Class _ResizableControl extends eAutocomplete._Proxy {
+
+			_minSize := {w: 51, h: 21}
+			_maxSize := {w: A_ScreenWidth, h: A_ScreenHeight}
+
+			_onResize := ""
+
+			__New(_ID, _hHost) {
+				_hLastFoundWindow := WinExist()
+				_GUIID := DllCall("User32.dll\GetAncestor", "Ptr", _hHost, "UInt", 2, "Ptr")
+				try {
+				Gui % _GUIID . ":+LastFoundExist"
+				IfWinNotExist
+					throw Exception("Invalid GUI window.",, _GUIID)
+				} finally WinExist("ahk_id " . _hLastFoundWindow)
+				ControlGet, _hHost, Hwnd,,, % "ahk_id " . _hHost
+				if not (_hHost)
+					throw Exception("The host control does not exist.")
+				GuiControlGet, _pos, Pos, % this._HWND:=_hHost
+				GUI, % _GUIID . ":Add", Text, % "0x12 w11 h11 " . Format("x{1} y{2}", _posx + _posw - 7, _posy + _posh - 7) . " hwnd_hLowerCornerHandle",
+				this._hLowerCornerHandle:= _hLowerCornerHandle, _fn := this.__resize.bind("", this._HWND, this._minSize, this._maxSize)
+				GuiControl +g, % _hLowerCornerHandle, % _fn
+			}
+			__resize(_hHost, _minSz, _maxSz, _hLowerCornerHandle) {
+
+				_listLines := A_ListLines
+				ListLines, Off
+				_coordModeMouse := A_CoordModeMouse
+				CoordMode, Mouse, Client
+				GuiControlGet, _start, Pos, % _hHost
+				; _minSz := this._minSize, _maxSz := this._maxSize
+				while (GetKeyState("LButton", "P")) {
+					MouseGetPos, _x, _y
+					_w := _x - _startX, _h := _y - _startY
+					if (_w <= _minSz.w)
+						_w := _minSz.w
+					else if (_w >= _maxSz.w)
+						_w := _maxSz.w
+					if (_h <= _minSz.h)
+						_h := _minSz.h
+					else if (_h >= _maxSz.h)
+						_h := _maxSz.h
+					if (this._onResize && this._onResize.call(A_GUI, _w, _h, _x, _y))
+						Exit
+					GuiControl, Move, % _hHost, % "w" . _w . " h" . _h
+					GuiControlGet, _pos, Pos, % _hHost
+					GuiControl, MoveDraw, % _hLowerCornerHandle, % "x" . (_posx + _posw - 7) . " y" . _posy + _posh - 7
+				sleep, 15
+				}
+				CoordMode, Mouse, % _coordModeMouse
+				ListLines % _listLines ? "On" : "Off"
+
+			}
+			unregister() {
+				GuiControl, -g, % this._hLowerCornerHandle
+			}
+			__Delete() {
+			this.unregister()
+			}
+
+			onResize {
+				set {
+					if not (IsFunc(value) || value:=Func(value)) {
+						throw Exception("Invalid callback.")
+					return this._onResize
+					}
+				return this._onResize:=value
+				}
+				get {
+				return this._onResize
+				}
+			}
+
+		}
 		; ====================================================================================
 
 	Class _Resource {
@@ -364,12 +439,17 @@ Class eAutocomplete {
 		}
 
 		_dispose() {
-		try GUI % this._parent . ":-Parent"
-		GuiControl -g, % this._HWND
-		eAutocomplete._EventObject(this)
+			try GUI % this._parent . ":-Parent"
+			GuiControl -g, % this._HWND
+			eAutocomplete._EventObject(this)
+			; ===========
+			try GUI % this._parent . ":Destroy"
+			DllCall("SelectObject", "UPtr", this._hDC, "UPtr", this._hFont, "UPtr")
+			DllCall("ReleaseDC", "UPtr", this._HWND, "UPtr", this._hDC)
+			; ===========
 		}
 		__Delete() {
-			; MsgBox % A_ThisFunc
+			MsgBox % A_ThisFunc
 			try GUI % this._parent . ":Destroy"
 			DllCall("SelectObject", "UPtr", this._hDC, "UPtr", this._hFont, "UPtr")
 			DllCall("ReleaseDC", "UPtr", this._HWND, "UPtr", this._hDC)
@@ -387,9 +467,6 @@ Class eAutocomplete {
 	}
 	Class _DynamicMenu extends eAutocomplete._ListBox {
 
-		__New(_GUIID, _hHostControl) {
-			base.__New(_GUIID, _hHostControl)
-		}
 		_show(_boolean:=true) {
 			base._show(_boolean), this._autoXY()
 		}
@@ -401,9 +478,12 @@ Class eAutocomplete {
 		}
 
 		__Set(_k, _v) {
-			base.__Set(_k, _v)
-			if ((_k = "fontName") || (_k = "fontSize") || (_k = "fontColor") || (_k = "maxSuggestions"))
-				this._autoWH(this._list)
+			if (eAutocomplete._Listbox._properties.hasKey(_k)) {
+				_v := base.__Set(_k, _v)
+				if ((_k = "fontName") || (_k = "fontSize") || (_k = "fontColor") || (_k = "maxSuggestions"))
+					this._autoWH(this._list)
+			return _v
+			}
 		}
 
 	}
@@ -526,7 +606,10 @@ Class eAutocomplete {
 				((!!_v <> this._disabled) && (this._disabled:=!!_v) && this._listbox._dismiss())
 			return this._disabled
 			}
-			else if ((_k = "onCompletion") || (_k = "onResize")) ; || (_k = "onSuggestionsAvailable")
+			else if (_k = "onResize")
+				eAutocomplete._ResizableControl.instances[ this._HWND ].1.onResize := _v
+			; else if ((_k = "onCompletion") || (_k = "onResize")) ; || (_k = "onSuggestionsAvailable")
+			else if (_k = "onCompletion") ; || (_k = "onSuggestionsAvailable")
 				return _v, eAutocomplete._EventObject(this, "_" . _k, _v)
 			else if ((_k = "onReplacement") || (_k = "onSuggestionLookUp")) {
 				((_v <> "") || _v:=this["__" . _k].bind(this))
@@ -580,15 +663,14 @@ Class eAutocomplete {
 		; ========================================
 		eAutocomplete._Hotkey(this._hkIfFuncObject)
 		eAutocomplete._EventObject(this)
-		eAutocomplete._Iterator(this._HWND)
+		eAutocomplete._Iterator(this._AHKID)
+		eAutocomplete._ResizableControl(this._HWND)
 		; ========================================
 		(this._learnWords && this._source.update())
-		if (this.hasKey("_hEditLowerCornerHandle"))
-			GuiControl, -g, % this._hEditLowerCornerHandle
 		this._listbox._dispose()
 	}
 	__Delete() {
-		; MsgBox % A_ThisFunc
+		MsgBox % A_ThisFunc
 	}
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PUBLIC BASE OBJECT METHODS ~~~~~~~~~~~~~
@@ -605,10 +687,7 @@ Class eAutocomplete {
 		_isComboBox := (!_plusResize && !(DllCall("GetWindowLong", "UInt", _hEdit, "Int", -16) & 0x4))
 		_inst := new eAutocomplete(_GUIID, _hEdit, _isComboBox, _opt)
 		if (_plusResize) {
-			GuiControlGet, _pos, Pos, % _hEdit
-			GUI, % _GUIID . ":Add", Text, % "0x12 w11 h11 " . Format("x{1} y{2}", _posx + _posw - 7, _posy + _posh - 7) . " hwnd_hEditLowerCornerHandle",
-			_inst._hEditLowerCornerHandle := _hEditLowerCornerHandle, _fn := _inst.__resize.bind(_inst)
-			GuiControl +g, % _hEditLowerCornerHandle, % _fn
+			eAutocomplete._ResizableControl(_hEdit, _hEdit)
 		}
 	return _inst
 	}
@@ -636,9 +715,6 @@ Class eAutocomplete {
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PRIVATE PROPERTIES ~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	_hEditLowerCornerHandle := ""
-	_minSize := {w: 51, h: 21}
-	_maxSize := {w: A_ScreenWidth, h: A_ScreenHeight}
 	_content := ""
 	_pendingWord := ""
 	_ready := true
@@ -668,7 +744,7 @@ Class eAutocomplete {
 		}
 
 		; ========================================
-		eAutocomplete._Iterator(this._HWND, ObjBindMethod(this, "__valueChanged", _hHostControl))
+		eAutocomplete._Iterator(this._AHKID, ObjBindMethod(this, "__valueChanged", _hHostControl))
 		; ========================================
 		eAutocomplete._Value.registerProc(this._idProcess)
 		eAutocomplete._EventObject(this._listbox, "_onSelection", ObjBindMethod(this, "_listboxSelectionEventMonitor"))
@@ -843,37 +919,6 @@ Class eAutocomplete {
 	}
 	; -----------------------------------------------------------------------------------------------
 
-	__resize(_hEditLowerCornerHandle) {
-
-		_listLines := A_ListLines
-		ListLines, Off
-		_coordModeMouse := A_CoordModeMouse
-		CoordMode, Mouse, Client
-		GuiControlGet, _start, Pos, % _hEdit:=this._HWND
-		_minSz := this._minSize, _maxSz := this._maxSize
-		while (GetKeyState("LButton", "P")) {
-			MouseGetPos, _x, _y
-			_w := _x - _startX, _h := _y - _startY
-			if (_w <= _minSz.w)
-				_w := _minSz.w
-			else if (_w >= _maxSz.w)
-				_w := _maxSz.w
-			if (_h <= _minSz.h)
-				_h := _minSz.h
-			else if (_h >= _maxSz.h)
-				_h := _maxSz.h
-			if (this._onResize && this._onResize.call(A_GUI, this, _w, _h, _x, _y))
-				Exit
-			GuiControl, Move, % _hEdit, % "w" . _w . " h" . _h
-			GuiControlGet, _pos, Pos, % _hEdit
-			GuiControl, MoveDraw, % _hEditLowerCornerHandle, % "x" . (_posx + _posw - 7) . " y" . _posy + _posh - 7
-		sleep, 15
-		}
-		CoordMode, Mouse, % _coordModeMouse
-		ListLines % _listLines ? "On" : "Off"
-
-	}
-
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~ PRIVATE BASE OBJECT METHODS ~~~~~~~~~~~~
 	; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -985,7 +1030,7 @@ Class eAutocomplete {
 					; ControlGetText, _text,, % _inst._AHKID
 					; _inst._content := _text
 					if (!_inst._disabled) {
-						eAutocomplete._Iterator.instances[_inst._HWND].1.setPeriod(-(3 + !_inst._ready) * 75)
+						eAutocomplete._Iterator.instances[_inst._AHKID].1.setPeriod(-(3 + !_inst._ready) * 75)
 					}
 				}
 			; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
