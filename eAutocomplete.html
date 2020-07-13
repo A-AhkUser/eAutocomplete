@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en-US"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>eAutocomplete | The class provides a programmable interface 
+allowing to easily integrate a custom word autocomplete function in a 
+given ahk script or project.</title>
+<meta name="generator" content="Jekyll v3.8.7">
+<meta property="og:title" content="eAutocomplete">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="The class provides a programmable interface allowing to easily integrate a custom word autocomplete function in a given ahk script or project.">
+<meta property="og:description" content="The class provides a programmable interface allowing to easily integrate a custom word autocomplete function in a given ahk script or project.">
+<link rel="canonical" href="https://a-ahkuser.github.io/eAutocomplete/">
+<meta property="og:url" content="https://a-ahkuser.github.io/eAutocomplete/">
+<meta property="og:site_name" content="eAutocomplete">
+<script type="application/ld+json">
+{"@type":"WebSite","url":"https://a-ahkuser.github.io/eAutocomplete/","headline":"eAutocomplete","name":"eAutocomplete","description":"The class provides a programmable interface allowing to easily integrate a custom word autocomplete function in a given ahk script or project.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <style class="anchorjs"></style><link rel="stylesheet" href="eAutocomplete_fichiers/style.css">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+
+      <h1 id="eautocomplete"><em>eAutocomplete</em></h1>
+<h6 id="autohotkey-v12900-latest-release-tested-on-v113200">AutoHotkey v1.29.00+ (latest release tested on v1.1.32.00)<a class="anchorjs-link " href="#autohotkey-v12900-latest-release-tested-on-v113200" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h6>
+<hr>
+
+<h4 id="download-the-latest-release">Download the <a href="https://github.com/A-AhkUser/eAutocomplete/releases">latest release</a><a class="anchorjs-link " href="#download-the-latest-release" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h4>
+<blockquote>
+  <p>notes:</p>
+  <ul>
+    <li>This readme provides an overview of the development version and,
+ as such, may not necessarily reflect your current version. Consider 
+checking out the html file (<code class="language-plaintext highlighter-rouge">eAutocomplete.html</code>) bundled in the release for an overview of the programmable interface.</li>
+    <li>Unlike the latest release, the master branch is NOT considered as fully tested on each commit.</li>
+  </ul>
+</blockquote>
+
+<p>The class provides a programmable interface allowing to easily 
+integrate a custom word autocomplete function in a given script or 
+project. Any <code class="language-plaintext highlighter-rouge">Edit</code>/<code class="language-plaintext highlighter-rouge">RICHEDIT50W</code> control should be able to be wrapped into an <code class="language-plaintext highlighter-rouge">eAutocomplete</code> object. Practically, it enables you to quickly find, get info tips and select from a dynamic pre-populated list of data (<em>e.g.</em> complete strings, replacement strings) as you type, leveraging typing, definition lookups, searching, translation, filtering <em>etc.</em></p>
+
+<h3 id="thanks-to">Thanks to:<a class="anchorjs-link " href="#thanks-to" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<ul>
+  <li><strong>AlphaBravo</strong>, <strong>jeeswg</strong> and <strong>just me</strong></li>
+  <li><strong>brutus_skywalker</strong> for his valuable suggestions on 
+how to make more ergonomic and user-friendly the common features 
+provided by the script via the use of keyboard shortcuts.</li>
+  <li><strong>G33kDude (GeekDude)</strong> and <strong>ManiacDC</strong> whose respective works - respectively <a href="https://github.com/G33kDude/CodeQuickTester/blob/master/lib/CQT.AutoComplete.ahk">CQT.AutoComplete.ahk</a> and <a href="https://github.com/ManiacDC/TypingAid/">TypingAid</a> - served as models for this one.</li>
+  <li><strong>Uberi</strong> for its <a href="https://github.com/Uberi/Autocomplete/blob/master/Autocomplete.ahk">score fuzzy search algorithm</a>.</li>
+  <li><strong>thanks to the AutoHotkey community</strong></li>
+</ul>
+
+<h2 id="table-of-contents">Table of Contents<a class="anchorjs-link " href="#table-of-contents" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="#description-commands">Description, commands</a></li>
+  <li>How to implement
+    <ul>
+    <li><a href="#deployment">Deployment</a></li>
+    <li><a href="#sample-example">Sample example</a></li>
+    </ul>
+  </li>
+  <li><a href="#create-base-method">Create base method</a></li>
+  <li><a href="#attach-base-method">Attach base method</a></li>
+  <li><a href="#options">Options</a></li>
+  <li><a href="#custom-autocomplete-lists">Custom autocomplete lists</a></li>
+  <li><a href="#available-methods">Available methods</a></li>
+  <li><a href="#dispose-method">Dispose method</a></li>
+  <li><a href="#event-handling">Event handling</a></li>
+	<ul>
+		<li><a href="#oncompletion-callback">OnCompletion</a></li>
+		<li><a href="#onsuggestionlookup-callback">OnSuggestionLookUp</a></li>
+		<li><a href="#onsize-callback">OnReplacement</a></li>
+		<li><a href="#onsearch-callback">OnSearch</a></li>
+		<li><a href="#onsize-callback">OnSize</a></li>
+	</ul>
+</ul>
+
+<h2 id="description-commands">Description, commands<a class="anchorjs-link " href="#description-commands" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+<hr>
+
+<table align="center">
+	<tbody><tr>
+	<td><img src="eAutocomplete_fichiers/eAutocomplete_1.html"></td>
+	<td><img src="eAutocomplete_fichiers/eAutocomplete_2.html"></td>
+	</tr>
+</tbody></table>
+
+<hr>
+
+<p>The script enables, as typing in an <code class="language-plaintext highlighter-rouge">Edit</code>/<code class="language-plaintext highlighter-rouge">RICHEDIT50W</code>
+ control, to quickly find and select from a dynamic pre-populated list 
+of suggestions and, by this means, to expand/replace partially entered 
+strings into/by complete strings. When you start to type in the edit 
+control and a brief rest (225ms) occured since the last keystroke, the 
+script starts searching for entries that match and should display 
+complete strings to choose from, based 1° on earlier typed letters; 2° 
+on the content of a <a href="#custom-autocomplete-lists">custom list</a> and 3° on the return value of either the built-in scoring algorihm or that of a <a href="#event-handling">custom onSearch callback</a>,
+ if such callback is implemented. If the host edit control is a 
+single-line edit control, the list of choices is displayed beneath the 
+control, in the manner of a combobox list (and, in this case, items can 
+be clicked).</p>
+
+<ul>
+  <li>Press the <code class="language-plaintext highlighter-rouge">Tab</code> key to complete a pending word with the selected suggestion (the top most suggestion is selected by default).</li>
+  <li>Use both the <code class="language-plaintext highlighter-rouge">Down</code> and <code class="language-plaintext highlighter-rouge">Up</code> arrow keys to select from the list all other available suggestions. Hitting <code class="language-plaintext highlighter-rouge">Up</code> while the first item is selected will bring you to the last one while hitting <code class="language-plaintext highlighter-rouge">Down</code> on the last item will bring you to the first one.</li>
+  <li>Long press <code class="language-plaintext highlighter-rouge">Tab</code>/<code class="language-plaintext highlighter-rouge">Shift+Tab</code> to replace the current partial string by the selected <a href="#custom-autocomplete-lists">suggestion’s first/second own replacement strings</a>, respectively (or, alternatively, by a <a href="#onreplacement-callback">dynamic string</a>).</li>
+  <li><code class="language-plaintext highlighter-rouge">Enter</code>/<code class="language-plaintext highlighter-rouge">Shift+Enter</code>
+ hotkeys are functionally equivalent to the previous ones except that 
+they also move the caret to the next line at the same time.</li>
+  <li>The drop-down list can be hidden by pressing the <code class="language-plaintext highlighter-rouge">Esc</code> key.</li>
+  <li>Press and hold the <code class="language-plaintext highlighter-rouge">Right</code>/<code class="language-plaintext highlighter-rouge">Shift+Right</code> hotkeys to look up the selected <a href="#custom-autocomplete-lists">suggestion’s first/second associated data</a>, respectively (or, alternatively, <a href="#onsuggestionlookup-callback">dynamic data</a>). When applicable, data appear in a tooltip, near the selected suggestion.</li>
+  <li>If <code class="language-plaintext highlighter-rouge">autoSuggest</code> is disabled, <code class="language-plaintext highlighter-rouge">Down</code> displays the drop-down list, assuming one or more suggestions are available (see also: <a href="#options">options</a>).</li>
+</ul>
+
+<p>By default, as of v.1.2.3, if not match is found in the autocompletion list, the script starts a fuzzy search. In this case <code class="language-plaintext highlighter-rouge">ahtkey</code> could match <code class="language-plaintext highlighter-rouge">autohotkey</code>
+ and suggest it as an autocomplete string, for instance. An instance can
+ optionally learn words at their first onset (or simply collect them for
+ use in a single session) by setting the value of both the <code class="language-plaintext highlighter-rouge">learnWords</code> and <code class="language-plaintext highlighter-rouge">collectWords</code> options. Specify <code class="language-plaintext highlighter-rouge">.</code> (that is, a dot) as one of the customizable <code class="language-plaintext highlighter-rouge">endkeys</code> and disable the <code class="language-plaintext highlighter-rouge">expandWithSpace</code> option to allow subsequence completion (<em>e.g.</em> method names, url and email adress components <em>etc.</em>). See also: <a href="#options">options</a>.</p>
+
+<h2 id="how-to-implement">How to implement<a class="anchorjs-link " href="#how-to-implement" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+<hr>
+
+<h4 id="deployment">Deployment<a class="anchorjs-link " href="#deployment" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h4>
+
+<p><em>An instance of <code class="language-plaintext highlighter-rouge">eAutocomplete</code> will be from now on referred to as <code class="language-plaintext highlighter-rouge">eA</code>.</em></p>
+
+<ul>
+  <li>Download the <a href="https://github.com/A-AhkUser/eAutocomplete/releases">latest release</a> and extract the content of the zip file to a location of your choice, for example into your project’s folder hierarchy.</li>
+  <li>Load the library (<code class="language-plaintext highlighter-rouge">\eAutocomplete.ahk</code>) by means of the <a href="https://www.autohotkey.com/docs/commands/_Include.htm">#Include directive</a>.</li>
+  <li>You can either <a href="#create-method">create</a> an <code class="language-plaintext highlighter-rouge">eAutocomplete</code>
+ control (that is, add a custom edit control and its interface to an 
+existing ahk GUI window) or endow with word completion feature an 
+existing edit control (<em>e.g</em> <em>Notepad</em>’s one) or an existing rich edit control (<em>e.g</em> <em>Wordpad</em>’s one) by means of the <a href="#attach-method">attach method</a> - both methods returning a new instance of <code class="language-plaintext highlighter-rouge">eAutocomplete</code>.</li>
+</ul>
+
+<h4 id="sample-example">Sample example<a class="anchorjs-link " href="#sample-example" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h4>
+
+<pre><code class="language-Autohotkey">#NoEnv
+#Warn
+
+#Include %A_ScriptDir%\eAutocomplete.ahk
+
+list =
+(Join`r`n
+voiture	car	автомобиль
+jour	day	день
+)
+/*
+Autocompletion data are assumed to be described in a linefeed-separated (CRLF, preferably) list
+of a TSV-formatted lines.
+A line can describe up to three items, in a tabular structure:
+- the first tab-separated item represents the string value which is intended to be
+displayed in the drop-down list, as an actual suggestion.
+- the other two items represent potential replacement strings - aside from being able to
+be displayed as info tips.
+*/
+eAutocomplete.setSourceFromVar("mySource", list) ; Creates a new autocomplete dictionary
+; from an input string, storing it directly in the base object.
+
+GUI, +hwndGUIID ; +hwndGUIID stores the window handle (HWND) of the GUI in 'GUIID'
+A := eAutocomplete.create(GUIID, "w300 h200 +Resize", {source: "mySource"})
+GUI, Show, w500 h500, eAutocomplete sample example
+OnExit, handleExit
+return
+
+handleExit:
+	A.dispose() ; you should call the `dispose` method, when you've done with
+	; the instance, especially if your script implements a __Delete meta-function.
+ExitApp
+</code></pre>
+
+<h2 id="create-base-method">Create base method<a class="anchorjs-link " href="#create-base-method" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+<hr>
+
+<pre><code class="language-Python">eA := eAutocomplete.create(_GUIID, _editOptions:="", _options:="")
+</code></pre>
+<hr>
+<p><em>The <code class="language-plaintext highlighter-rouge">create</code> method throws an exception upon failure (such as if the host window does not exist).</em></p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">parameter</th>
+      <th style="text-align: left">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_GUIID</code> [HWND]</td>
+      <td style="text-align: left">The host <a href="https://www.autohotkey.com/docs/misc/WinTitle.htm#ahk_id">window’s HWND</a>.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_editOptions</code> <em>OPTIONAL</em> [STRING]</td>
+      <td style="text-align: left">The <a href="https://www.autohotkey.com/docs/commands/GuiControls.htm#Edit_Options">edit control’s options</a>. The <code class="language-plaintext highlighter-rouge">+Resize</code> option may be listed in <code class="language-plaintext highlighter-rouge">options</code> to allow you to resize both the height and width of the edit control.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_options</code> <em>OPTIONAL</em> [OBJECT]</td>
+      <td style="text-align: left">An <a href="https://www.autohotkey.com/docs/Objects.htm#Usage_Associative_Arrays">object</a>. If applicable, the <a href="#options">following keys</a> are processed.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="attach-base-method">Attach base method<a class="anchorjs-link " href="#attach-base-method" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+<hr>
+
+<pre><code class="language-Python">eA := eAutocomplete.attach(_hHostControl, _options:="")
+</code></pre>
+<hr>
+<p><em>The <code class="language-plaintext highlighter-rouge">attach</code> method throws an exception upon failure (such as if the host control is not a representative of the class <code class="language-plaintext highlighter-rouge">Edit</code>/<code class="language-plaintext highlighter-rouge">RICHEDIT50W</code>).</em></p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">parameter</th>
+      <th style="text-align: left">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_hHostControl</code> [HWND]</td>
+      <td style="text-align: left">The host <a href="https://www.autohotkey.com/docs/commands/ControlGet.htm#Hwnd">control’s HWND</a>.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_options</code> <em>OPTIONAL</em> [OBJECT]</td>
+      <td style="text-align: left">An <a href="https://www.autohotkey.com/docs/Objects.htm#Usage_Associative_Arrays">object</a>. If applicable, the <a href="#options">following keys</a> are processed.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="options">Options<a class="anchorjs-link " href="#options" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+<hr>
+
+<h6 id="all-keys-may-at-any-time-be-modified-after-the-instance-is-created-by-setting-the-value-of-the-respective-property-on-a-side-note-the-runtime-readonly-properties-eahwndeaahkid-and-ealistboxhwndealistboxahkid-contain-respectively-the-host-control-and-the-drop-down-list-controls-hwndahkid">All keys may at any time be modified after the instance is created by setting the value of the respective <a href="https://www.autohotkey.com/docs/Objects.htm#Usage_Objects">property</a>. On a side note, the runtime readonly properties <code class="language-plaintext highlighter-rouge">eA.HWND</code>/<code class="language-plaintext highlighter-rouge">eA.AHKID</code> and <code class="language-plaintext highlighter-rouge">eA.listbox.HWND</code>/<code class="language-plaintext highlighter-rouge">eA.listbox.AHKID</code> contain respectively the host control and the drop-down list control’s HWND/AHKID.<a class="anchorjs-link " href="#all-keys-may-at-any-time-be-modified-after-the-instance-is-created-by-setting-the-value-of-the-respective-property-on-a-side-note-the-runtime-readonly-properties-eahwndeaahkid-and-ealistboxhwndealistboxahkid-contain-respectively-the-host-control-and-the-drop-down-list-controls-hwndahkid" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h6>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">key (property)</th>
+      <th style="text-align: left">description</th>
+      <th style="text-align: center">default value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">autoSuggest</code></td>
+      <td style="text-align: left">If set to <code class="language-plaintext highlighter-rouge">true</code>
+ the autocompletion automatically displays a drop-down list beneath the 
+current partial string as soon as suggestions are available. Otherwise, 
+if set to <code class="language-plaintext highlighter-rouge">false</code>, the <code class="language-plaintext highlighter-rouge">Down</code> key can display the drop-down list, assuming one or more suggestions are available.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">true</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">collectAt</code></td>
+      <td style="text-align: left">Specify how many times a ‘word’ 
+absent from the autocomplete list should be typed before being actually 
+collected by the instance. Instance’s concept of ‘word’ is affected by 
+both the <code class="language-plaintext highlighter-rouge">endKeys</code> and the <code class="language-plaintext highlighter-rouge">minWordLength</code> options. Once collected, words are valid during a single session (see also: <code class="language-plaintext highlighter-rouge">learnWords</code>).</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">4</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">collectWords</code></td>
+      <td style="text-align: left">Specify whether or not an instance should collect ‘words’ at their <code class="language-plaintext highlighter-rouge">collectAt</code>-nth onset. Once collected, words are valid during a single session (see also: <code class="language-plaintext highlighter-rouge">learnWords</code>).</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">true</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">disabled</code></td>
+      <td style="text-align: left">Determine whether or not the word completion feature should start off in an initially-disabled state.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">false</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">endKeys</code></td>
+      <td style="text-align: left">A list of zero or more characters, 
+considered as not being part of a ‘word’, that is, all characters which 
+terminate a word and start a new word at the same time. Its value 
+affects the behaviour of the <code class="language-plaintext highlighter-rouge">minWordLength</code>, the <code class="language-plaintext highlighter-rouge">suggestAt</code> and the <code class="language-plaintext highlighter-rouge">collectWords</code>
+ options. In particular, any trailing end keys is removed from a string 
+before being collected and, as the case may be, learned. Space 
+characters - space, tab, and newlines - are always considered as end 
+keys.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge"> \/|?!,;.:(){}[]'""&lt;&gt;@= </code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">expandWithSpace</code></td>
+      <td style="text-align: left">If set to <code class="language-plaintext highlighter-rouge">true</code>, the script automatically expands the complete string with a space upon text expansion/replacement.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">true</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">learnWords</code></td>
+      <td style="text-align: left">If the value evaluates to <code class="language-plaintext highlighter-rouge">true</code>, collected words will be stored into the instance’s current list (note: <strong>if the <a href="#custom-autocomplete-lists">source</a>
+ is a file, its content will be overwritten, either at the time the 
+source is replaced by a new one by setting the eponymous property or at 
+the time the <code class="language-plaintext highlighter-rouge">dispose</code> method is called</strong>).</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">false</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">minWordLength</code></td>
+      <td style="text-align: left">Set the minimum number of characters a word must contain to be actually seen as a ‘word’. Its value affects the <code class="language-plaintext highlighter-rouge">collectWords</code> option.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">4</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">source</code></td>
+      <td style="text-align: left">Specifies the <a href="#custom-autocomplete-lists">autocomplete list</a> to use. The value must be the name of a source that was previously defined using either the <a href="#available-methods"><code class="language-plaintext highlighter-rouge">setSourceFromVar</code> or the <code class="language-plaintext highlighter-rouge">setSourceFromFile</code> base methods</a>. Specify an empty string and enable the <code class="language-plaintext highlighter-rouge">learnWords</code> option to start building a new wordlist from the scratch.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">""</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">suggestAt</code></td>
+      <td style="text-align: left">Set the minimum number of characters 
+you must type before a search is performed. Zero is useful for local 
+data with just a few items, but a higher value should be used when a 
+single character search could match a few thousand items.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">2</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">&nbsp;</td>
+      <td style="text-align: left">EVENT HANDLING:</td>
+      <td style="text-align: center">&nbsp;</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">onCompletion</code></td>
+      <td style="text-align: left">Associate a function with the <code class="language-plaintext highlighter-rouge">completion</code> event. This can be used, for example, to launch a search engine when you have selected an item. See also: <a href="#event-handling">Event handling</a>.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">""</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">onReplacement</code></td>
+      <td style="text-align: left">Associate a function with the <code class="language-plaintext highlighter-rouge">replacement</code>
+ event. This can be used to allow dynamic replacements, such as when 
+replacement strings come from a translation API, for instance. See also:
+ <a href="#event-handling">Event handling</a>.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">""</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">onResize</code></td>
+      <td style="text-align: left">Associate a function with the little 
+UI handle which allows resizing and with which is endowed an edit 
+control when it has been created using the <code class="language-plaintext highlighter-rouge">create</code> method and have <code class="language-plaintext highlighter-rouge">+Resize</code> listed in <code class="language-plaintext highlighter-rouge">editOptions</code>. It is launched automatically whenever you resize the edit control by its means. See also: <a href="#event-handling">Event handling</a>.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">""</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">onSuggestionLookUp</code></td>
+      <td style="text-align: left">Associate a function with the <code class="language-plaintext highlighter-rouge">suggestionLookUp</code>
+ event. This can be used to allow dynamic description lookups such as 
+when info tip strings come from a dictionary API, as an example. See 
+also: <a href="#event-handling">Event handling</a>.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">""</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">onSearch</code></td>
+      <td style="text-align: left">Associate a function with the <code class="language-plaintext highlighter-rouge">search</code>
+ event. That way, you can override the built-in scoring algorithm that 
+check the pending word against the current autocomplete source list, 
+implement your own in order to return custom subsets of suggestions. See
+ also: <a href="#event-handling">Event handling</a>.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">""</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">&nbsp;</td>
+      <td style="text-align: left">LISTBOX OBJECT MEMBER:</td>
+      <td style="text-align: center">&nbsp;</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">listbox.bkColor</code></td>
+      <td style="text-align: left">Sets the background color of the drop-down list by specifying one of the 16 primary <a href="https://www.autohotkey.com/docs/commands/Progress.htm#colors">HTML color names</a> or a 6-digit RGB color value.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">FFFFFF</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">listbox.fontColor</code></td>
+      <td style="text-align: left">Sets the font color for the drop-down list by specifying one of the 16 primary <a href="https://www.autohotkey.com/docs/commands/Progress.htm#colors">HTML color names</a> or a 6-digit RGB color value.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">000000</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">listbox.fontName</code></td>
+      <td style="text-align: left">Sets the font typeface for the drop-down list.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">Segoe UI</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">listbox.fontSize</code></td>
+      <td style="text-align: left">Sets the font size for the drop-down list.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">13</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">listbox.maxSuggestions</code></td>
+      <td style="text-align: left">The maximum number of suggestions to display in the drop-down list, without having to scrolling, if necesary.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">7</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">listbox.tabStops</code></td>
+      <td style="text-align: left">[<strong>combobox only</strong>] 
+Specify an integer, multiple of eight, to set tab stops. Tab stops can 
+be used in a list box to align columns of informations. Tab stops are 
+expressed as dialog units. On the average, each character is about four 
+horizontal dialog units in width. <code class="language-plaintext highlighter-rouge">eAutocomplete</code>
+ uses by default a value of 512 (!) to hide replacement/description 
+strings used by the application’s internal processing. You can however 
+decide to make replacement/description strings visually available and 
+formatted into columns by specifying a smaller value.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">512</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">listbox.transparency</code></td>
+      <td style="text-align: left">Specify a number between <strong>10</strong> and 255 to indicate the autocomplete drop-down list’s degree of transparency.</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">235</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">&nbsp;</td>
+      <td style="text-align: left">&nbsp;</td>
+      <td style="text-align: center">&nbsp;</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">useRTL</code></td>
+      <td style="text-align: left">The language is intended to be displayed in right-to-left (RTL) mode as with Arabic or Hebrew. <strong>(not yet implemented)</strong></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">false</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="custom-autocomplete-lists">Custom autocomplete lists<a class="anchorjs-link " href="#custom-autocomplete-lists" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+<hr>
+
+<h4 id="autocompletion-data-are-assumed-to-be-described-in-a-linefeed-separated-crlf-preferably-list-of-a-tsv-formatted-lines-a-line-can-describe-up-to-three-items-in-a-tabular-structure">Autocompletion
+ data are assumed to be described in a linefeed-separated (CRLF, 
+preferably) list of a TSV-formatted lines. A line can describe up to 
+three items, in a tabular structure:<a class="anchorjs-link " href="#autocompletion-data-are-assumed-to-be-described-in-a-linefeed-separated-crlf-preferably-list-of-a-tsv-formatted-lines-a-line-can-describe-up-to-three-items-in-a-tabular-structure" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h4>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>лето		summer		прекрасное лето - great summer`r`nпроводить лето - to summer
+		this is a comment
+ this is a comment
+</code></pre></div></div>
+<h4 id="in-particular-in-this-case">In particular, in this case:<a class="anchorjs-link " href="#in-particular-in-this-case" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h4>
+<ul>
+  <li>the first tab-separated item represents the string value which is 
+intended to be displayed in the drop-down list, as an actual suggestion.</li>
+  <li>the other two items represent potential replacement strings - aside from being able to be displayed as info tips.</li>
+</ul>
+
+<p>Both the second and the third items may be omitted (that is, a line 
+may consist in a single field, whether it is a word or a group of word) -
+ while specifying an empty string in between two tab-separated values 
+(that is, two consecutive tab characters) allows to omit the second item
+ while being able to use the third one as third. Description/replacement
+ strings can be multiline text strings - however, in this case, both the
+ newline (linefeed/LF) and the carriage return (CR) characters must be <a href="https://www.autohotkey.com/docs/commands/_EscapeChar.htm">escaped</a>. Also, each line may be commented out by prefixing it by one or more space (or tab) characters.</p>
+
+<blockquote>
+  <p><em>note: a linefeed-separated list of a TSV-formatted lines can be
+ built in particular from your google drive or you office suite - from a
+ spreadsheet by saving it as… <code class="language-plaintext highlighter-rouge">.csv</code> (and specifying, if need be, a tabulation as field separator)</em>.</p>
+</blockquote>
+
+<h2 id="available-methods">Available methods<a class="anchorjs-link " href="#available-methods" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+<hr>
+
+<ul>
+  <li><strong>setSourceFromVar</strong></li>
+  <li><strong>setSourceFromFile</strong></li>
+  <li><strong>setOptions</strong></li>
+</ul>
+
+<p><em>All methods throw an exception upon failure</em></p>
+
+<hr>
+<pre><code class="language-Python">eAutocomplete.setSourceFromVar(_sourceName, _list:="")
+</code></pre>
+<hr>
+
+<h6 id="creates-a-new-autocomplete-dictionary-a-list-alphabetically-splitted-in-subsections-from-an-input-string-storing-it-directly-in-the-base-object">Creates
+ a new autocomplete dictionary (a list alphabetically splitted in 
+subsections) from an input string, storing it directly in the base 
+object.<a class="anchorjs-link " href="#creates-a-new-autocomplete-dictionary-a-list-alphabetically-splitted-in-subsections-from-an-input-string-storing-it-directly-in-the-base-object" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h6>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">parameter</th>
+      <th style="text-align: left">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_source</code></td>
+      <td style="text-align: left">The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_list</code> [OPTIONAL]</td>
+      <td style="text-align: left">The list as string of characters. You can use <a href="https://www.autohotkey.com/docs/commands/FileRead.htm">FileRead</a> or a <a href="https://www.autohotkey.com/docs/Scripts.htm#continuation">continuation section</a> to save a series of lines to a variable.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+<pre><code class="language-Python">eAutocomplete.setSourceFromFile(_sourceName, _fileFullPath)
+</code></pre>
+<hr>
+
+<h6 id="creates-a-new-autocomplete-dictionary-a-list-alphabetically-splitted-in-subsections-from-a-files-content-storing-it-directly-in-the-base-object">Creates
+ a new autocomplete dictionary (a list alphabetically splitted in 
+subsections) from a file’s content, storing it directly in the base 
+object.<a class="anchorjs-link " href="#creates-a-new-autocomplete-dictionary-a-list-alphabetically-splitted-in-subsections-from-a-files-content-storing-it-directly-in-the-base-object" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h6>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">parameter</th>
+      <th style="text-align: left">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_source</code></td>
+      <td style="text-align: left">The name of the source, which may consist of alphanumeric characters, underscore and non-ASCII characters.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_fileFullPath</code></td>
+      <td style="text-align: left">The absolute path of the file to read (note: <strong>its
+ content will be overwritten and replaced by a sorted list of suggestion
+ items, either at the time the source is replaced by a new one by 
+setting the eponymous property or at the time the <code class="language-plaintext highlighter-rouge">dispose</code> method is called</strong>).</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+<pre><code class="language-Python">eA.setOptions(_options)
+eA.listbox.setOptions(_options)
+</code></pre>
+<hr>
+
+<h6 id="sets-one-or-more-options-of-a-given-eautocomplete-instance-or-its-listbox-object-member">Sets one or more options of a given <code class="language-plaintext highlighter-rouge">eAutocomplete</code> instance or its <code class="language-plaintext highlighter-rouge">listbox</code> object member.<a class="anchorjs-link " href="#sets-one-or-more-options-of-a-given-eautocomplete-instance-or-its-listbox-object-member" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h6>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">parameter</th>
+      <th style="text-align: left">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">_options</code> [OBJECT]</td>
+      <td style="text-align: left">An <a href="https://www.autohotkey.com/docs/Objects.htm#Usage_Associative_Arrays">object</a>. If applicable, the <a href="#options">following keys</a> are processed.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="dispose-method">Dispose method<a class="anchorjs-link " href="#dispose-method" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+<hr>
+
+<pre><code class="language-AutoHotkey">eA.dispose()
+</code></pre>
+<hr>
+
+<p>Releases all circular references by unregistering instance’s own 
+hotkeys and event handlers. It also removes instance’s own event hook 
+functions (the class hook a few events instead of querying windows 
+objects when needed). A script should call the <code class="language-plaintext highlighter-rouge">dispose</code> method, especially if it implements a <code class="language-plaintext highlighter-rouge">__Delete</code> meta-function. Moreover, calling <code class="language-plaintext highlighter-rouge">dispose</code>
+ ensures that collected words, if any, are stored into the appropriate 
+autocomplete list. Once the method has been called, any further call has
+ no effect.</p>
+
+<h2 id="event-handling">Event handling<a class="anchorjs-link " href="#event-handling" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+<hr>
+
+<p>The script is able to call a user-defined callback for the following events:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">onCompletion</code></li>
+  <li><code class="language-plaintext highlighter-rouge">onSuggestionLookUp</code></li>
+  <li><code class="language-plaintext highlighter-rouge">onReplacement</code></li>
+  <li><code class="language-plaintext highlighter-rouge">onSearch</code></li>
+  <li><code class="language-plaintext highlighter-rouge">onSize</code></li>
+</ul>
+
+<p>The value can be either the name of a function, a <a href="https://www.autohotkey.com/docs/commands/Func.htm">function reference</a> or a <a href="https://www.autohotkey.com/docs/objects/Functor.htm#BoundFunc">boundFunc object</a>. In the latter case, stucked bound references, if any, are freed at the time the <code class="language-plaintext highlighter-rouge">dispose</code> instance’s own method is called.</p>
+
+<h6 id="oncompletion-callback">onCompletion callback<a class="anchorjs-link " href="#oncompletion-callback" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h6>
+
+<hr>
+<pre><code class="language-Python">eA.onCompletion := Func("mycompletionEventMonitor")
+</code></pre>
+<hr>
+
+<p>Executes a custom function whenever you have performed a completion or a replacement by pressing/long pressing either the <code class="language-plaintext highlighter-rouge">Tab</code> or the <code class="language-plaintext highlighter-rouge">Enter</code> key.</p>
+
+<ul>
+  <li>The function can optionally accept the following parameters:
+<code class="language-plaintext highlighter-rouge">mycompletionEventMonitor(this, _completeString, _isReplacement)</code></li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">parameter</th>
+      <th style="text-align: center">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_completeString</code></td>
+      <td style="text-align: center">Contains the text of the complete string.</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_isReplacement</code></td>
+      <td style="text-align: center">A boolean value which determines whether or not a remplacement has been performed beforehand.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h6 id="onsuggestionlookup-callback">onSuggestionLookup callback<a class="anchorjs-link " href="#onsuggestionlookup-callback" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h6>
+
+<hr>
+<pre><code class="language-Python">eA.onSuggestionLookup := Func("mySuggestionLookupEventMonitor")
+</code></pre>
+<hr>
+
+<p>Associate a function with the <code class="language-plaintext highlighter-rouge">suggestionLookUp</code>
+ event. This would cause the function to be launched automatically 
+whenever you attempt to query an info tip from the selected suggestion 
+by pressing and holding either the <code class="language-plaintext highlighter-rouge">Right</code> key (querying the suggestion’s first associated <em>datum</em>) or the <code class="language-plaintext highlighter-rouge">Shift+Right</code> hotkey (querying the suggestion’s second associated <em>datum</em>).
+ The return value of the callback will be used as the actual text 
+displayed in the tooltip. This can be used to allow dynamic description 
+lookups such as when description strings come from a dictionary API.</p>
+
+<ul>
+  <li>The function can optionally accept the following parameters:
+<code class="language-plaintext highlighter-rouge">infoTipText := mySuggestionLookupEventMonitor(_suggestionText, _tabIndex)</code></li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">parameter</th>
+      <th style="text-align: center">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_suggestionText</code></td>
+      <td style="text-align: center">The text of the selected suggestion, as visible in the drop-down list.</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_tabIndex</code></td>
+      <td style="text-align: center">If a variable is specified, it is assigned a number indicating the index of the suggestion’s associated <em>datum</em>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h6 id="onreplacement-callback">onReplacement callback<a class="anchorjs-link " href="#onreplacement-callback" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h6>
+
+<hr>
+<pre><code class="language-Python">eA.onReplacement := Func("myReplacementEventMonitor")
+</code></pre>
+<hr>
+
+<p>Associate a function with the <code class="language-plaintext highlighter-rouge">replacement</code>
+ event. This would cause the function to be launched automatically 
+whenever you are about to perform a replacement by long pressing either 
+the <code class="language-plaintext highlighter-rouge">Tab</code>/<code class="language-plaintext highlighter-rouge">Enter</code> key (suggestion’s first associated replacement string) or the <code class="language-plaintext highlighter-rouge">Shift+Tab</code>/<code class="language-plaintext highlighter-rouge">Shift+Enter</code>
+ hotkey (suggestion’s second associated replacement string). The event 
+fires before the replacement string has been actually sent to the host 
+control - the return value of the function being actually used as the 
+actual replacement string. This can be used to allow dynamic 
+replacements, such as when replacement strings come from a translation 
+API, for example.</p>
+
+<ul>
+  <li>The function can optionally accept the following parameters:
+<code class="language-plaintext highlighter-rouge">replacementText := myReplacementEventMonitor(_suggestionText, _tabIndex)</code></li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">parameter</th>
+      <th style="text-align: center">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_suggestionText</code></td>
+      <td style="text-align: center">The text of the selected suggestion, as visible in the drop-down list.</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_tabIndex</code></td>
+      <td style="text-align: center">If a variable is specified, it is assigned a number indicating the index of the suggestion’s associated replacement string.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h6 id="onsearch-callback">onSearch callback<a class="anchorjs-link " href="#onsearch-callback" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h6>
+
+<hr>
+<pre><code class="language-Python">eA.onSearch := Func("mySearchEventMonitor")
+</code></pre>
+<hr>
+
+<p>Associate a function with the <code class="language-plaintext highlighter-rouge">search</code> event. The function is triggered before a search is performed, after <code class="language-plaintext highlighter-rouge">suggestAt</code>
+ is met. That way, you can override the built-in scoring algorithm that 
+check the pending word against the current autocomplete source list, 
+implement your own in order to return custom subsets of suggestions.</p>
+
+<ul>
+  <li>The function can optionally accept the following parameters:
+<code class="language-plaintext highlighter-rouge">mySearchEventMonitor(this, _subsection, _substring, ByRef _suggestionList:="")</code></li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">parameter</th>
+      <th style="text-align: center">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_subsection</code></td>
+      <td style="text-align: center">The subsection of the autocomplete source where all words start with the first letter of the pending word.</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_substring</code></td>
+      <td style="text-align: center">Contains the pending word.</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_suggestionList</code> [BYREF]</td>
+      <td style="text-align: center">Your callback is supposed to give a value to this <code class="language-plaintext highlighter-rouge">ByRef</code>
+ parameter, that of a linefeed-separated (CRLF) subset of suggestions, 
+precisely the subset which is intended to be displayed as autocomplete 
+suggestions.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h5 id="onsize-callback">onSize callback<a class="anchorjs-link " href="#onsize-callback" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h5>
+
+<hr>
+<pre><code class="language-Python">eA.onSize := Func("mySizeEventMonitor")
+</code></pre>
+<hr>
+
+<p>Associate a function with the little UI handle which allows resizing 
+and with which is endowed an edit control when it has been created using
+ the <code class="language-plaintext highlighter-rouge">create</code> method and had <code class="language-plaintext highlighter-rouge">+Resize</code> listed in <code class="language-plaintext highlighter-rouge">editOptions</code>.
+ The function is executed automatically whenever you resize the edit 
+control by its means. The function can prevent resizing by returning a 
+non-zero integer.</p>
+
+<ul>
+  <li>The function can optionally accept the following parameters:
+<code class="language-plaintext highlighter-rouge">preventResizing := mySizeEventMonitor(_parent, this, _w, _h, _mousex, _mousey)</code></li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">parameter</th>
+      <th style="text-align: center">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_parent</code></td>
+      <td style="text-align: center">The name, number or HWND of the GUI itself.</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_w</code></td>
+      <td style="text-align: center">The current edit control’s width.</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_h</code></td>
+      <td style="text-align: center">The current edit control’s height.</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_mousex</code></td>
+      <td style="text-align: center">The current position (abscissa) of the mouse cursor (coordinate is relative to the active window’s client area).</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">_mousey</code></td>
+      <td style="text-align: center">The current position (ordinate) of the mouse cursor (coordinate is relative to the active window’s client area).</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="licence">Licence<a class="anchorjs-link " href="#licence" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p><a href="https://a-ahkuser.github.io/eAutocomplete/LICENSE">Unlicence</a></p>
+
+
+      
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        This site is open source. <a href="https://github.com/A-AhkUser/eAutocomplete/edit/master/README.md">Improve this page</a>.
+      </div>
+      
+    </div>
+    <script src="eAutocomplete_fichiers/anchor.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    
+  
+
+</body></html>
