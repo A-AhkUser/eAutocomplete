@@ -7,12 +7,8 @@ SendMode, Input
 
 #Include %A_ScriptDir%\eAutocomplete.ahk
 
-for source, url in {"Autocompletion_en": "https://raw.githubusercontent.com/A-AhkUser/keypad-library/master/Keypad/Autocompletion/en"
-					, "Autocompletion_fr": "https://raw.githubusercontent.com/A-AhkUser/keypad-library/master/Keypad/Autocompletion/fr"} {
-if not (FileExist(filename:=A_ScriptDir . "\" . source . ".txt"))
-	UrlDownloadToFile % url, % filename
-	eAutocomplete.setSourceFromFile(source, filename)
-}
+eAutocomplete.setSourceFromFile("Autocompletion_en", A_ScriptDir . "\Autocompletion_en")
+eAutocomplete.setSourceFromFile("Autocompletion_fr", A_ScriptDir . "\Autocompletion_fr")
 var =
 (
 Laurène%A_Tab%test%A_Tab%blabla
@@ -42,13 +38,11 @@ options :=
 			maxSuggestions: 7,
 			transparency: 220
 		},
-		matchModeRegEx: true,
 		minWordLength: 4,
 		onCompletion: "test_onCompletion",
 		onReplacement: "test_onReplacement",
 		onResize: "test_onResize",
 		onSuggestionLookUp: "test_onSelectionLookUp",
-		regExSymbol: "*",
 		source: "Autocompletion_en",
 		suggestAt: 2
 	}
@@ -67,13 +61,11 @@ options2 :=
 		endKeys: "",
 		expandWithSpace: false,
 		learnWords: false,
-		matchModeRegEx: false,
 		minWordLength: 5,
 		onCompletion: "",
 		onReplacement: "",
 		onResize: "",
 		onSuggestionLookUp: "",
-		regExSymbol: "*",
 		source: "Autocompletion_fr",
 		suggestAt: 1
 	}
@@ -143,7 +135,6 @@ return _suggestionText "[" _tabIndex "] from " A_ThisFunc
 	A.endKeys := "@"
 	A.expandWithSpace := !A.expandWithSpace
 	A.learnWords := !A.learnWords
-	A.matchModeRegEx := !A.matchModeRegEx
 	A.minWordLength := 3
 	A.listbox.maxSuggestions := 2
 	A.listbox.transparency := 110
@@ -152,7 +143,6 @@ return _suggestionText "[" _tabIndex "] from " A_ThisFunc
 	A.onReplacement := "test_onReplacement2"
 	A.onResize := "test_onResize2"
 	A.onSuggestionLookUp := "test_onSelectionLookUp2"
-	A.regExSymbol := "+"
 	A.source := "source_test"
 	A.suggestAt := 1
 return
