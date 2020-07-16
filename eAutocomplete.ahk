@@ -944,7 +944,9 @@ Class eAutocomplete {
 			eAutocomplete._Value.bypassToggle := true
 			_keyDelay := A_KeyDelay
 			SetKeyDelay, 0
-			ControlSend,, % _keys, % "ahk_id " . _hwnd
+			ControlFocus,, % "ahk_id " . _hwnd ; ++++++
+			SendInput, % _keys ; ++++++
+			; ControlSend,, % _keys, % "ahk_id " . _hwnd
 			sleep, 300 ; check messages of the internal message queue
 			SetKeyDelay % _keyDelay
 			eAutocomplete._Value.bypassToggle := _state
