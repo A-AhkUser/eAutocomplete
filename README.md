@@ -48,8 +48,8 @@ The class provides a programmable interface allowing to easily integrate a custo
 
 <table align="center">
 	<tr>
-	<td><img src="/eAutocomplete_1.gif" /></td>
-	<td><img src="/eAutocomplete_2.gif" /></td>
+	<td><img src="https://raw.githubusercontent.com/A-AhkUser/resources/master/eAutocomplete_1.gif" /></td>
+	<td><img src="https://raw.githubusercontent.com/A-AhkUser/resources/master/eAutocomplete_2.gif" /></td>
 	</tr>
 </table>
 
