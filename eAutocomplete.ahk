@@ -782,11 +782,9 @@ Class eAutocomplete {
 		(!this._completionData && this._completionData:=_listbox._getCurrentItemData())
 		_coordModeToolTip := A_CoordModeToolTip
 		CoordMode, ToolTip, Screen
-			VarSetCapacity(_RECT_, 16, 0) ; +++
-			DllCall("User32.dll\GetWindowRect", "Ptr", _listBox._host, "Ptr", &_RECT_) ; +++
-			_y := NumGet(&_RECT_, 4, "Int"), _w := NumGet(&_RECT_, 8, "Int") ; +++
-			_x := _w + 10 ; +++
-			_y := _y + (_listbox._selection.offsetTop - 0.5) * _listbox._itemHeight ; +++
+			WinGetPos, _x, _y,,, % _listBox.AHKID
+			_x += 10
+			_y := _y + (_listbox._selection.offsetTop - 0.5) * _listbox._itemHeight
 			ToolTip % this._onSuggestionLookUp.call(this._completionData.1, _tabIndex), % _x, % _y
 			KeyWait % _keys[ A_ThisHotkey ]
 			ToolTip
