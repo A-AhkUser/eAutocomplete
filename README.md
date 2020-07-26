@@ -336,7 +336,7 @@ Associate a function with the `search` event. The function is triggered before a
 
 | parameter | description |
 | :---: | :---: |
-| ``_subsection`` | The subsection of the autocomplete source where all words start with the first letter of the pending word. |
+| ``_subsection`` | The subsection of the autocomplete source where all words start with the first letter of the pending word (it can optionally be declared as `ByRef` to enhance performance and conserve memory). |
 | ``_substring`` | Contains the pending word. |
 | ``_suggestionList`` [BYREF] | Your callback is supposed to give a value to this `ByRef` parameter, that of a linefeed-separated (CRLF) subset of suggestions, precisely the subset which is intended to be displayed as autocomplete suggestions. |
 
