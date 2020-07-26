@@ -730,7 +730,7 @@ Class eAutocomplete {
 		return this._listbox._itemCount
 		}
 	} ; +++
-	__onSearch(_inst, _subsection, _substring, ByRef _list:="") {
+	__onSearch(_inst, ByRef _subsection, _substring, ByRef _list:="") {
 		local
 		if (_subsection <> "") {
 			if not (RegExMatch(_subsection, "`nsi)\n\Q" . _substring . "\E[^\n]+(?:.*\n\Q" . _substring . "\E.+?(?=\n))?", _list)) {
