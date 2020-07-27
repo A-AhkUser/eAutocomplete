@@ -336,9 +336,9 @@ Associate a function with the `search` event. The function is triggered before a
 
 | parameter | description |
 | :---: | :---: |
-| ``_subsection`` | The subsection of the autocomplete source where all words start with the first letter of the pending word (it can optionally be declared as `ByRef` to enhance performance and conserve memory). |
+| ``_subsection`` | The subsection of the autocomplete source where all words start with the first letter of the pending word (it can optionally be declared as `ByRef` to enhance performance and conserve memory). The subsection is prefixed by a linefeed character ( \`n ) and each item including the last one end with this character. |
 | ``_substring`` | Contains the pending word. |
-| ``_suggestionList`` [BYREF] | Your callback is supposed to give a value to this `ByRef` parameter, that of a linefeed-separated (CRLF) subset of suggestions, precisely the subset which is intended to be displayed as autocomplete suggestions. |
+| ``_suggestionList`` [BYREF] | Your callback is supposed to give a value to this `ByRef` parameter, that of a list where all items are separated by a linefeed character ( \`n ) - precisely the subset which is intended to be displayed as autocomplete suggestions. Trailing linefeed characters, if any, are discarded. |
 
 ##### onSize callback
 
@@ -351,7 +351,7 @@ eA.onSize := Func("mySizeEventMonitor")
 Associate a function with the little UI handle which allows resizing and with which is endowed an edit control when it has been created using the `create` method and had `+Resize` listed in `editOptions`. The function is executed automatically whenever you resize the edit control by its means. The function can prevent resizing by returning a non-zero integer.
 
 - The function can optionally accept the following parameters:
-``preventResizing := mySizeEventMonitor(_parent, this, _w, _h, _mousex, _mousey)``
+``preventResizing := mySizeEventMonitor(this, _parent, _w, _h, _mousex, _mousey)``
 
 | parameter | description |
 | :---: | :---: |
