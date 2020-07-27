@@ -515,7 +515,7 @@ Class eAutocomplete {
 					if (InStr(_lastEndKeys, A_LoopField))
 						continue
 					_lastEndKeys .= A_LoopField
-					if A_LoopField in ^,-,],\
+					if A_LoopField in \,.,*,?,+,[,{,|,(,),^,$
 						_endKeys .= "\" . A_LoopField
 					else _endKeys .= A_LoopField
 				}
