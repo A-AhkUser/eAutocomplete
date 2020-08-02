@@ -80,7 +80,6 @@ Class eAutocomplete {
 			this.unregister()
 			}
 		}
-
 	Class _Resource {
 		static table := []
 		path := ""
@@ -370,7 +369,6 @@ Class eAutocomplete {
 			eAutocomplete._EventObject(this)
 		}
 		__Delete() {
-			; MsgBox % A_ThisFunc
 			try GUI % this._parent . ":Destroy"
 			DllCall("SelectObject", "UPtr", this._hDC, "UPtr", this._hFont, "UPtr")
 			DllCall("ReleaseDC", "UPtr", this._HWND, "UPtr", this._hDC)
@@ -515,7 +513,7 @@ Class eAutocomplete {
 					if (InStr(_lastEndKeys, A_LoopField))
 						continue
 					_lastEndKeys .= A_LoopField
-					if A_LoopField in \,.,*,?,+,[,{,|,(,),^,$
+					if A_LoopField in \,.,*,?,+,[,],{,},|,(,),^,$
 						_endKeys .= "\" . A_LoopField
 					else _endKeys .= A_LoopField
 				}
@@ -576,7 +574,7 @@ Class eAutocomplete {
 		_isComboBox := (!_plusResize && !(DllCall("GetWindowLong", "UInt", _hEdit, "Int", -16) & 0x4))
 		_classPath := StrSplit(this.__Class, "."), _className := _classPath.removeAt(1) ; +++
 		_obj := (_classPath.count() > 0) ? %_className%[_classPath*] : %_className% ; +++
-		_inst := new _obj(_GUIID, _hEdit, _isComboBox, _opt) ; +++
+		_inst := new _obj(_GUIID, _hEdit, _isComboBox, false, _opt) ; +++
 		if (_plusResize) {
 			GuiControlGet, _pos, Pos, % _hEdit
 			GUI, % _GUIID . ":Add", Text, % "0x12 w11 h11 " . Format("x{1} y{2}", _posx + _posw - 7, _posy + _posh - 7) . " hwnd_hEditLowerCornerHandle",
@@ -586,12 +584,13 @@ Class eAutocomplete {
 	return _inst
 	}
 	attach(_hHostControl, _opt:="") {
-		local _detectHiddenWindows, _class, _GUIID, _style, _isComboBox, _classPath, _className, _obj, _inst, _hLastFoundWindow
+		local _detectHiddenWindows, _class, _GUIID, _style, _isComboBox, _classPath, _className, _obj, _inst, _hLastFoundWindow, _isRichEdit
 		_detectHiddenWindows := A_DetectHiddenWindows
 		DetectHiddenWindows, On
 		WinGetClass, _class, % "ahk_id " . _hHostControl
 		DetectHiddenWindows % _detectHiddenWindows
-		if not ((_class = "Edit") || (_class = "RICHEDIT50W")) {
+		_isRichEdit := false
+		if not ((_class = "Edit") || _isRichEdit:=(_class = "RICHEDIT50W")) {
 			throw Exception("The host control either does not exist or is not a representative of the class Edit/RICHEDIT50W.", -1, _class)
 		return
 		}
@@ -600,7 +599,7 @@ Class eAutocomplete {
 		_isComboBox := not (_style & 0x4) ; ES_MULTILINE
 		_classPath := StrSplit(this.__Class, "."), _className := _classPath.removeAt(1) ; +++
 		_obj := (_classPath.count() > 0) ? %_className%[_classPath*] : %_className% ; +++
-		_inst := new _obj(_GUIID, _hHostControl, _isComboBox, _opt) ; +++
+		_inst := new _obj(_GUIID, _hHostControl, _isComboBox, _isRichEdit, _opt) ; +++
 		_hLastFoundWindow := WinExist()
 		if (WinActive("ahk_id " . _GUIID))
 			eAutocomplete._Value.__sourceChanged(0x8005, _hHostControl, 0, 0, 0, 0) ; ++++
@@ -631,7 +630,7 @@ Class eAutocomplete {
 	_pendingWord := ""
 	_ready := true
 	_completionData := ""
-	__New(_GUIID, _hHostControl, _isComboBox, _opt:="") {
+	__New(_GUIID, _hHostControl, _isComboBox, _isRichEdit, _opt:="") {
 		local _idProcess, _classPath, _className, _obj, _listBox, _clone, _listBoxOptions, _hkIfFn
 		eAutocomplete._setOptions(this, "_properties",, true)
 		_idProcess := "", DllCall("User32.dll\GetWindowThreadProcessId", "Ptr", _GUIID, "UIntP", _idProcess, "UInt")
@@ -655,7 +654,7 @@ Class eAutocomplete {
 		}
 
 		eAutocomplete._Iterator(this._HWND, ObjBindMethod(this, "__valueChanged")) ; +++
-		_obj._Value.registerProc(this._idProcess) ; +++
+		_obj._Value.registerProc(this._idProcess, (_isRichEdit) ? 0x8014 : 0x800E) ; ++++++++++
 
 		eAutocomplete._EventObject(this._listbox, "_onSelection", ObjBindMethod(this, "_listboxSelectionEventMonitor"))
 
@@ -703,7 +702,9 @@ Class eAutocomplete {
 		local
 		global eAutocomplete
 		_wrapper := new eAutocomplete._pendingWordMatchObjectWrapper
-		_content := this._content, _caretPos := this._getSelection()
+		_content := this._content, _caretPos := this._getSelection(_startSel, _endSel)
+		if (_startSel <> _endSel)
+			return _wrapper
 		_caretIsWellPositioned := (StrLen(RegExReplace(SubStr(_content, _caretPos, 2), "\s$")) <= 1)
 		if not (_caretIsWellPositioned)
 			return _wrapper
@@ -799,6 +800,7 @@ Class eAutocomplete {
 		local
 		global eAutocomplete
 		static _keys := {}
+		this._ready := false
 		if (_isReplacement:=A_ThisHotkey <> "") {
 			if not (_keys.hasKey(A_ThisHotkey)) {
 				RegExMatch(A_ThisHotkey, "i)(\w+|.)(?:[ `t]Up)?$", _match), _keys[ A_ThisHotkey ] := _match
@@ -807,6 +809,7 @@ Class eAutocomplete {
 			(not (_isReplacement:=ErrorLevel)) ? this._expand() : this._replace(_tabIndex)
 			KeyWait % _keys[ A_ThisHotkey ]
 		} else this._expand()
+		this._ready := true
 		this._listbox._dismiss()
 		if (_goToNewLine) {
 			eAutocomplete._Value._rawSend("{Enter}", this._HWND)
@@ -909,14 +912,14 @@ Class eAutocomplete {
 		static processes := {}
 		static lastFoundControl := 0x0
 		static bypassToggle := false
-		registerProc(_idProcess) {
+		registerProc(_idProcess, _eventNum) {
 			local
 			global eAutocomplete
 			if not (eAutocomplete._Value.processes.hasKey(_idProcess)) {
 				eAutocomplete._Value.processes[_idProcess] := []
 				_callback := RegisterCallback("eAutocomplete._Value.__valueChange")
 				_hWinEventHook
-				:= DllCall("User32.dll\SetWinEventHook","Uint",0x800E,"Uint",0x800E,"Ptr",0,"Ptr",_callback,"Uint",_idProcess,"Uint",0,"Uint",0)
+				:= DllCall("User32.dll\SetWinEventHook","Uint",_eventNum,"Uint",_eventNum,"Ptr",0,"Ptr",_callback,"Uint",_idProcess,"Uint",0,"Uint",0)
 				eAutocomplete._Value.processes[_idProcess].push(_hWinEventHook)
 				_callback := RegisterCallback("eAutocomplete._Value.__sourceChanged")
 				Loop, parse, % "0x000A,0x0015,0x8005", CSV
@@ -945,7 +948,7 @@ Class eAutocomplete {
 			ControlFocus,, % "ahk_id " . _hwnd ; ++++++
 			SendInput, % _keys ; ++++++
 			; ControlSend,, % _keys, % "ahk_id " . _hwnd
-			sleep, 300 ; check messages of the internal message queue
+			sleep, 75 ; check messages of the internal message queue
 			SetKeyDelay % _keyDelay
 			eAutocomplete._Value.bypassToggle := _state
 		}
@@ -955,7 +958,7 @@ Class eAutocomplete {
 			_state := eAutocomplete._Value.bypassToggle
 			eAutocomplete._Value.bypassToggle := true
 			Control, EditPaste, % StrReplace(StrReplace(_text, "``n", "`n"), "``r", "`r"),, % "ahk_id " . _hwnd
-			sleep, 300 ; check messages of the internal message queue
+			sleep, 75 ; check messages of the internal message queue
 			eAutocomplete._Value.bypassToggle := _state
 		}
 		; <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
