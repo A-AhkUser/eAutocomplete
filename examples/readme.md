@@ -1,6 +1,8 @@
 In this folder you will find some commented examples illustrating the use and some of the possibilities of the script.
 - A_AhkVersionFromLocalData
 > *A simple example illustrating the use of suggestion items with associated data.*
+- RichEdit
+> *Same as above except that the target host control is a rich control.*
 - A_AhkVersionFromWebData
 > *Similar to A_AhkVersionFromLocalData - this time, however, suggestions' associated data are retrieved from the web.*
 - AutocompleteAndTranslate
