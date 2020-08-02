@@ -948,7 +948,7 @@ Class eAutocomplete {
 			ControlFocus,, % "ahk_id " . _hwnd ; ++++++
 			SendInput, % _keys ; ++++++
 			; ControlSend,, % _keys, % "ahk_id " . _hwnd
-			sleep, 75 ; check messages of the internal message queue
+			sleep, 200 ; check messages of the internal message queue
 			SetKeyDelay % _keyDelay
 			eAutocomplete._Value.bypassToggle := _state
 		}
@@ -958,7 +958,7 @@ Class eAutocomplete {
 			_state := eAutocomplete._Value.bypassToggle
 			eAutocomplete._Value.bypassToggle := true
 			Control, EditPaste, % StrReplace(StrReplace(_text, "``n", "`n"), "``r", "`r"),, % "ahk_id " . _hwnd
-			sleep, 75 ; check messages of the internal message queue
+			sleep, 200 ; check messages of the internal message queue
 			eAutocomplete._Value.bypassToggle := _state
 		}
 		; <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
