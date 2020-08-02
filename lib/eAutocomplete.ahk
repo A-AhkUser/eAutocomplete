@@ -800,7 +800,6 @@ Class eAutocomplete {
 		local
 		global eAutocomplete
 		static _keys := {}
-		this._ready := false
 		if (_isReplacement:=A_ThisHotkey <> "") {
 			if not (_keys.hasKey(A_ThisHotkey)) {
 				RegExMatch(A_ThisHotkey, "i)(\w+|.)(?:[ `t]Up)?$", _match), _keys[ A_ThisHotkey ] := _match
@@ -809,7 +808,6 @@ Class eAutocomplete {
 			(not (_isReplacement:=ErrorLevel)) ? this._expand() : this._replace(_tabIndex)
 			KeyWait % _keys[ A_ThisHotkey ]
 		} else this._expand()
-		this._ready := true
 		this._listbox._dismiss()
 		if (_goToNewLine) {
 			eAutocomplete._Value._rawSend("{Enter}", this._HWND)
