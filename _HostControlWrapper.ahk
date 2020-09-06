@@ -103,7 +103,7 @@
 				this.__value.call()
 			}
 		} else if (_msg = EVENT_FOCUS) {
-			this.__focus.call(this.lastFound:=this.instances.hasKey(_param1) * _param1)
+			this.__focus.call(this.lastFound:=this.instances.hasKey(_param1) * _param1, _param2)
 		}
 	}
 	Class _Utils {
