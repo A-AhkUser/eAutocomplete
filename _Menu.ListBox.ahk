@@ -5,8 +5,8 @@
 		GUI % this._hHost . ":Add", ListBox, % "-Sort -Multi -HScroll +VScroll hwnd_hListBox x" _x . " y" . _y,
 		this.HWND := _hListBox
 		this.selection := new this.SelectionWrapper(this.HWND)
-		this._font := new this.FontWrapper(this.HWND)
-		this.font.size := 12
+		_font := this._font := new this.FontWrapper(this.HWND)
+		_font.name := "Segoe UI", _font.size := 12, _font.color := "000000"
 	}
 	font {
 		set {
