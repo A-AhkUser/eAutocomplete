@@ -81,12 +81,13 @@
 		; Critical
 		ControlGetFocus, _focusedControl, A
 		ControlGet, _hwnd, Hwnd,, % _focusedControl, A
+		_boolean := (_event = EVENT_SYSTEM_MOVESIZESTART)
 		if (_hwnd = _lastFoundControl) {
-			if (_event <> EVENT_SYSTEM_MOVESIZESTART)
+			if not (_boolean)
 				return
 		}
 		_lastFoundControl := _hwnd
-		DllCall("User32.dll\PostMessage", "Ptr", A_ScriptHwnd, "Uint", 0x8003, "Ptr", _hwnd, "Ptr", _event) ; WM_APP + 3
+		DllCall("User32.dll\PostMessage", "Ptr", A_ScriptHwnd, "Uint", 0x8003, "Ptr", _hwnd, "Ptr", _boolean) ; WM_APP + 3
 	}
 	__value(_event, _hwnd, _idObject, _idChild, _dwEventThread, _dwmsEventTime) {
 		static OBJID_CLIENT := 0xFFFFFFFC
