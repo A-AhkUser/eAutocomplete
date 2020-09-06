@@ -101,9 +101,11 @@
 		this._HostControlWrapper.unwrapAll()
 	}
 
-	__focus__(_hEdit:=0x0) {
+	__focus__(_hEdit:=0x0, _param2:=false) {
 		this._stopPropagation()
-		if (this._HostControlWrapper.instances.hasKey(Format("{:i}", _hEdit)))
+		if (_param2)
+			this.Menu.hide()
+		else if (this._HostControlWrapper.instances.hasKey(Format("{:i}", _hEdit)))
 			this.Menu.owner := WinExist("ahk_id " . _hEdit)
 		else this.Menu.owner := ""
 	}
