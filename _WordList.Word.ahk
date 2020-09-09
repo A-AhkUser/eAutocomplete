@@ -12,32 +12,32 @@
 		return this._minLength
 		}
 	}
-	_endKeys := (this.endKeys:="\/|?!,;.:(){}[]'""<>@=")
-	endKeys {
+	_edgeKeys := (this.edgeKeys:="\/|?!,;.:(){}[]'""<>@=")
+	edgeKeys {
 		set {
 			local
-			_lastEndKeys := "", _endKeys := ""
+			_lastEdgeKeys := "", _edgeKeys := ""
 			_listLines := A_ListLines
 			ListLines, 0
 			Loop, parse, % RegExReplace(value, "\s")
 			{
-				if (InStr(_lastEndKeys, A_LoopField))
+				if (InStr(_lastEdgeKeys, A_LoopField))
 					continue
-				_lastEndKeys .= A_LoopField
+				_lastEdgeKeys .= A_LoopField
 				if A_LoopField in \,.,*,?,+,[,],{,},|,(,),^,$
-					_endKeys .= "\" . A_LoopField
-				else _endKeys .= A_LoopField
+					_edgeKeys .= "\" . A_LoopField
+				else _edgeKeys .= A_LoopField
 			}
 			ListLines % _listLines
-		return this._endKeys:=_endKeys
+		return this._edgeKeys:=_edgeKeys
 		}
 		get {
-		return this._endKeys
+		return this._edgeKeys
 		}
 	}
 	test(_string, ByRef _wrapper:="") {
 		local
-		_isPending := "?P<isPending>[^\s" . this.endKeys . "]{" . this.minLength . ",}", _isComplete := "?P<isComplete>[\s" . this.endKeys . "]?"
+		_isPending := "?P<isPending>[^\s" . this.edgeKeys . "]{" . this.minLength . ",}", _isComplete := "?P<isComplete>[\s" . this.edgeKeys . "]?"
 		_pos := RegExMatch(_string, "`aOi)(" . _isPending . ")(" . _isComplete . ")$", _match)
 		for _subPatternName, _subPatternObject in _wrapper := new this._Match()
 			for _property in _subPatternObject, _o := _wrapper[_subPatternName]
