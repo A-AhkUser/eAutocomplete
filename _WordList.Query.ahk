@@ -25,8 +25,8 @@
 	}
 	test(_string, ByRef _wrapper:="") {
 		local
-		_endKeys := this.Word.endKeys
-		_isPending := "?P<isPending>[^\s" . _endKeys . "]{" . this.Word.minLength . ",}", _isComplete := "?P<isComplete>[\s" . _endKeys . "]?"
+		_edgeKeys := this.Word.edgeKeys
+		_isPending := "?P<isPending>[^\s" . _edgeKeys . "]{" . this.Word.minLength . ",}", _isComplete := "?P<isComplete>[\s" . _edgeKeys . "]?"
 		_pos := RegExMatch(_string, "`aOi)(" . _isPending . ")(" . _isComplete . ")$", _match)
 		for _subPatternName, _subPatternObject in _wrapper := new this.Word._Match()
 			for _property in _subPatternObject, _o := _wrapper[_subPatternName]
