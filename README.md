@@ -55,13 +55,13 @@ This readme provides an overview of the development version and, as such, may no
 
 ## Description, commands
 
-The script enables, as typing in an `Edit`/`RICHEDIT50W` control, to quickly find and select from a dynamic pre-populated list of suggestions and, by this means, to expand/replace partially entered strings into/by complete strings. By default, keystroke events separated by a period of less than 255ms are considered as part of an influx and are discarded as such while a single call is buffered: when you start to type in the target control and a brief rest of 225ms occured since the last keystroke, the script starts searching for entries that match and should automatically - by default at least - display complete strings to choose from, which are based:
+The script enables, as typing in an `Edit`/`RICHEDIT50W` control, to quickly find and select from a dynamic pre-populated list of suggestions and, by this means, to expand/replace partially entered strings into/by complete strings. When you start to type in the target control and a brief rest occurred since the last keystroke, the script starts searching for entries that match and should automatically - by default at least - display complete strings to choose from, which are based:
 
 - on earlier typed characters (letters, symbols *etc.*);
 - on the content and settings of the current [wordlist](#custom-autocomplete-lists);
 - on the recentness of use of the matching suggestions.
 
-The script integrates the [Sift_Regex function](https://www.autohotkey.com/boards/viewtopic.php?t=7302), by **FanaticGuru**: fuzzy searching is available, assuming the given wordlist and its `Query`'s interface have been set up to allow it. By way of examples, and depending on the setting, `ahkey`, `AHKey`, `a.+?key$` or `auto` could match `autohotkey` - and suggest it as an autocomplete string.
+The script integrates the [Sift_Regex function](https://www.autohotkey.com/boards/viewtopic.php?t=7302): fuzzy searching is available, assuming the given wordlist and its `Query`'s interface have been set up to allow it. By way of examples, and depending on the setting, `ahkey`, `AHKey`, `a.+?key$` or `auto` could match `autohotkey` - and suggest it as an autocomplete string.
 
 > Known limitation: for efficiency reasons, and for want of anything better, the script preprocessed the user-defined wordlist, creating a list alphabetically splitted in subsections; a pending word is check against the subsection of the autocomplete source where all words start with the very first letter by which a given pending word starts so that the length of the input string whose content is searched is reduced. This means, for example, in 'regex mode', that `on$` will suggest `objection` because:
 
@@ -79,8 +79,8 @@ The key features provided by the script are accessible using keyboard shortcuts,
 * Long press <kbd>Tab</kbd> to replace the current partial string (should call the [onReplacement](#onreplacement) callback, if any).
 * The <kbd>Enter</kbd> hotkey are functionally equivalent to the <kbd>Tab</kbd> one except that it also moves the caret to the next line at the same time.
 * Press and hold <kbd>⯈</kbd> (that is, the right arrow key) to look up the selected suggestion's associated info tip (should call the [onSuggestionLookUp](#onsuggestionlookup) callback, if any).
-* The drop-down list can be hidden by pressing the combination <kbd>Shift</kbd>+<kbd>Esc</kbd>.
-* If [`autoSuggest`](#available-properties) is disabled or if you previously hid the menu, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Down</kbd> displays the drop-down list, assuming one or more suggestions are available.
+* The menu can be hidden by pressing the combination <kbd>Shift</kbd>+<kbd>Esc</kbd>.
+* If [`autoSuggest`](#available-properties) is disabled or if you previously hid the menu, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Down</kbd> displays the menu, assuming one or more suggestions are available.
 
 An instance can optionally learn *hapax legomena* at their first onset (or simply collect them for use in a single session) by setting the respective value of the given [wordlist's `learnWords` and `collectWords` properties](#custom-autocomplete-lists).
 
@@ -146,10 +146,11 @@ wlo := eAutocomplete.WordList.setFromVar(_sourceName, _list:="", _exportPath:=""
 
 | parameter | description |
 |:-|:-|
-| ``_sourceName`` *[STRING]* | Description soon available. |
-| ``_fileFullPath`` *[FILE_FULL_PATH]* | Description soon available. |
-| ``_exportPath`` *[FILE_FULL_PATH/INTEGER]* | Description soon available. |
-| ``_caseSensitive`` *[BOOLEAN]* | Description soon available. |
+| ``_sourceName`` *[STRING]* | The name of the wordlist, which may consist of alphanumeric characters, underscore and non-ASCII characters. |
+| ``_fileFullPath`` *[FILE_FULL_PATH]* | [``...FromFile``] The absolute path of the file to read and whose content will be used to build or set the autocomplete list. |
+| ``_list`` *[STRING]* | [``...FromVar``] A list, as string of characters, from which to build or set the autocomplete list. You can use [FileRead](https://www.autohotkey.com/docs/commands/FileRead.htm) or a [continuation section](https://www.autohotkey.com/docs/Scripts.htm#continuation) to save a series of lines to a variable. |
+| ``_exportPath`` *[FILE_FULL_PATH/INTEGER]* | The absolute path of the file to which export the formatted autocomplete list and any update of its content (see also: [`learnWords`](#the-wordlist-object)). The file is created if need be and **overwritten if it already exists**. [``...FromFile``]: Specify `-1` to use ``_fileFullPath`` as export file. |
+| ``_caseSensitive`` *[BOOLEAN]* | A boolean value which determines whether or not items in the autocomplete list which are distinguishable one from the other only by their case should be considered as identical (`false`) or not (`true`). |
 
 ##### return value: all four methods return an [new WordList object](#the-wordlist-object) upon success.
 > All four methods throw an exception on failure.
@@ -162,7 +163,6 @@ wlo := eAutocomplete.WordList.setFromVar(_sourceName, _list:="", _exportPath:=""
 
 | Object member | description |
 | :- | :---: |
-| ``Query`` | Description soon available. |
 | ``Query.Sift`` | Description soon available. |
 | ``Query.Word`` | Description soon available. |
 
@@ -176,16 +176,15 @@ You can find below all properties available for the ``WordList`` object:
 
 || property | description | default value
 | :---: | :---: | :---: | :---: |
-| **query** | | | |
-|| ``collectAt``</br>*[UNSIGNED_INTEGER]* | Description soon available. | `4` |
-|| ``collectWords``</br>*[BOOLEAN]* | Description soon available. | `true` |
-|| ``learnWords``</br>*[BOOLEAN]* | Description soon available. | `false` |
-|| ``name``</br>*[STRING] [READ_ONLY]* | Description soon available. | *runtime/user-defined* |
+|| ``collectAt``</br>*[UNSIGNED_INTEGER]* | Specify how many times a 'word' absent from the wordlist should be typed before being actually collected by the instance. Instance's concept of 'word' is affected by the setting of the ``query.word`` member. Once collected, words are valid during a single session (see also: `learnWords`). | `4` |
+|| ``collectWords``</br>*[BOOLEAN]* | Specify whether or not an instance should collect 'words' at their `collectAt`-nth onset. Once collected, words are valid during a single session (see also: `learnWords`). | `true` |
+|| ``learnWords``</br>*[BOOLEAN]* | If the value evaluates to `true` at the time the eAutocomplete's current wordlist [is replaced by a new one](#available-properties) or at the time the the script exits, collected words will be stored into the instance's export file. | `false` |
+|| ``name``</br>*[STRING] [READ_ONLY]* | The name of the wordlist. | *runtime/user-defined* |
 | **query.sift** | | | |
-|| ``option``</br>*[SIFT_OPTION]* | Description soon available. | `"LEFT"` |
+|| ``option``</br>*[SIFT_REGEX_OPTION]* | One of the following `Sift_Regex` options:</br></br>`IN`	*Needle anywhere IN Haystack item*</br>`LEFT`	*Needle is to LEFT or beginning of Haystack item*</br>`RIGHT`	*Needle is to RIGHT or end of Haystack item*</br>`EXACT`	*Needle is an EXACT match to Haystack item*</br>`REGEX`	*Needle is an REGEX expression to check against Haystack item*</br>`OC`	*Needle is ORDERED CHARACTERS to be searched for even non-consecutively but in the given order in Haystack item*</br>`OW`	*Needle is ORDERED WORDS to be searched for even non-consecutively but in the given order in Haystack item*</br>`UC`	*Needle is UNORDERED CHARACTERS to be search for even non-consecutively and in any order in Haystack item*</br>`UW`	*Needle is UNORDERED WORDS to be search for even non-consecutively and in any order in Haystack item*</br>(see also: [Sift_Regex](https://www.autohotkey.com/boards/viewtopic.php?t=7302))| `"LEFT"` |
 | **query.word** | | | |
-|| ``endKeys``</br>*[STRING]* | Description soon available. | `"\/\|?!,;.:(){}[]'""<>@="` |
-|| ``minLength``</br>*[UNSIGNED_INTEGER]* | Description soon available. | `2` |
+|| ``edgeKeys``</br>*[STRING]* | A list of zero or more characters, considered as not being part of a 'word', that is, all characters that can work as outer edges of a word. Space characters - space, tab, and newlines - are always considered as end keys. | `"\/\|?!,;.:(){}[]'""<>@="` |
+|| ``minLength``</br>*[UNSIGNED_INTEGER]* | Set the minimum number of characters a word must contain to be actually seen as a 'word'. | `2` |
 
 ##
 
@@ -251,10 +250,10 @@ ExitApp
 
 | property | description | default value
 | :---: | :---: | :---: |
-| ``eAutocomplete.autoSuggest`` *[BOOLEAN]* | Description soon available. | `true` |
-| ``eAutocomplete.disabled`` *[BOOLEAN]* | Description soon available. | `false` |
-| ``eAutocomplete.keypressThreshold `` *[UNSIGNED_INTEGER]* | Description soon available. | `225` |
-| ``eAutocomplete.resource`` *[SOURCE_NAME/WORDLIST_OBJECT]* | Description soon available. | *runtime/user-defined* |
+| ``eAutocomplete.autoSuggest`` *[BOOLEAN]* | If set to `true` the autocompletion feature automatically displays a menu as soon as suggestions are available. Otherwise, if set to `false`, the <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Down</kbd> hotkey can display the menu, assuming one or more suggestions are available. | `true` |
+| ``eAutocomplete.disabled`` *[BOOLEAN]* | Disable (`true`) or enable (`false`), if need be, the autocomplete feature. Use the [unwrap method](#available-methods) instead to deprive a control of its eAutocomplete word completion feature and interface. | `false` |
+| ``eAutocomplete.keypressThreshold `` *[UNSIGNED_INTEGER]* | The number of milliseconds that must pass before eAutocomplete starts searching for entries that match in the autocomplete list. Keystroke events separated by a period of less than this value are considered as part of an influx and are discarded as such while a single call is buffered: in other words, when you start to type in the target control and a brief rest of this property's value (in milliseconds) occurred since the last keystroke, eAutocomplete actually starts searching for entries that match in the autocomplete list. Specifying a number less than 65 is the same as specifying 65. | `225` |
+| ``eAutocomplete.resource`` *[SOURCE_NAME/WORDLIST_OBJECT]* | Specifies the [autocomplete list](#custom-autocomplete-lists) to use. The value must be the name of a [wordlist instance](#the-wordlist-object). | *runtime/user-defined* |
 
 ###
 
@@ -330,8 +329,8 @@ completeString := onCompleteEventHandler(_suggestion, ByRef _expandModeOverride:
 
 | parameters | description |
 |:-|:-|
-| ``_suggestion`` | Description soon available. |
-| ``_expandModeOverride`` | Description soon available. |
+| ``_suggestion`` | The text of the selected suggestion, as visible in the autocomplete menu. |
+| ``_expandModeOverride`` | If you give a value to this `ByRef` parameter, it can be that of an EXPAND_MODE - to locally and punctually override the [eAutocomplete's Completor](#available-properties-object-members) way to expand. |
 ##
 ### OnReplacement
 ***
@@ -349,8 +348,8 @@ replacementString := onReplacementEventHandler(_suggestion, ByRef _expandModeOve
 
 | parameters | description |
 |:-|:-|
-| ``_suggestion`` | Description soon available. |
-| ``_expandModeOverride`` | Description soon available. |
+| ``_suggestion`` | The text of the selected suggestion, as visible in the autocomplete menu. |
+| ``_expandModeOverride`` | If you give a value to this `ByRef` parameter, it can be that of an EXPAND_MODE - to locally and punctually override the [eAutocomplete's Completor](#available-properties-object-members) way to expand. |
 ##
 ### OnSuggestionLookUp
 ***
@@ -360,7 +359,7 @@ eAutocomplete.onSuggestionLookUp("") ; unregister the function object, if applic
 ```
 ***
 ##### description:
-Associate a function with the `suggestionLookUp` event. This would cause the function to be launched automatically whenever you attempt to query an info tip from the selected suggestion by pressing and holding the `Right` key (by default). The return value of the callback will be used as the actual text displayed in the tooltip. This can be used to allow dynamic description lookups such as when description strings come from a dictionary API.</br>
+Associate a function with the `suggestionLookUp` event. This would cause the function to be launched automatically whenever you attempt to query an info tip from the selected suggestion by pressing and holding the <kbd>⯈</kbd> arrow key (by default). The return value of the callback will be used as the actual text displayed in the tooltip. This can be used to allow dynamic description lookups such as when description strings come from a dictionary API.</br>
 The function can optionally accept the following parameters:</br>
 ```AutoHotkey
 infotTipText := onSuggestionLookUp(_selectionText)
@@ -368,7 +367,7 @@ infotTipText := onSuggestionLookUp(_selectionText)
 
 | parameters | description |
 |:-|:-|
-| ``_selectionText`` | Description soon available. |
+| ``_selectionText`` | The text of the selected suggestion, as visible in the autocomplete menu. |
 
 ###
 
