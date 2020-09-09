@@ -1,5 +1,6 @@
 ﻿Class _Hotkey extends eAutocomplete._FunctorEx {
 	__New(_hkIfFn, _keyName, _fn) {
+		local
 		if not (StrLen(Trim(_keyName))) {
 			throw Exception("Invalid key name", -1)
 		return
