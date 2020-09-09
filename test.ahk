@@ -84,8 +84,8 @@ Menu.Positioning.offsetY := 10
 Menu.InfoTip.Positioning.offsetX := 10
 Menu.InfoTip.font.setCharacteristics("Showcard Gothic", "s15 bold italic")
 ; MsgBox % Menu.InfoTip.font.setCharacteristics("blabla", "blabla")
-Menu.itemsBox.visibleItems := 3
-; MsgBox % Menu.itemsBox.visibleItems := "blabla"
+Menu.itemsBox.maxVisibleItems := 3
+; MsgBox % Menu.itemsBox.maxVisibleItems := "blabla"
 Hotkey := eAutocomplete.Hotkey
 Hotkey.Menu.hide("^Esc")
 ; Hotkey.Menu.hide("blabla")
