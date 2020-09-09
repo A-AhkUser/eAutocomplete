@@ -1,6 +1,7 @@
 ﻿Class _InfoTip extends eAutocomplete._Window {
 	_lastFoundX := -1
 	_lastFoundY := -1
+	_tip := ""
 	__New(_controlList, _TT_WHICH:=19) {
 		local
 		ToolTip, % Chr(8203), % this._lastFoundX, this._lastFoundY, % this.TT_WHICH := _TT_WHICH
@@ -51,7 +52,7 @@
 		local
 		_coordModeToolTip := A_CoordModeToolTip
 		CoordMode, ToolTip, Screen
-		ToolTip, % this._getText(), % this._lastFoundX, this._lastFoundY, % this.TT_WHICH
+		ToolTip, % this._tip:=this._getText(), % this._lastFoundX, this._lastFoundY, % this.TT_WHICH
 		CoordMode, ToolTip, % _coordModeToolTip
 	}
 	show() {
@@ -60,7 +61,7 @@
 		if (_r:=!this.isVisible()) {
 			this.autoXY()
 			this._updateTip()
-			DllCall("ShowWindow", "Ptr", this.GUIID, "Int", SW_SHOWNOACTIVATE)
+			(StrLen(this._tip) && DllCall("ShowWindow", "Ptr", this.GUIID, "Int", SW_SHOWNOACTIVATE))
 		}
 	return _r
 	}
@@ -82,9 +83,7 @@
 	_getText() {
 		local
 		_text := this.controlList.selection.text, ((_onInvoke:=this.onInvoke) && (_text:=_onInvoke.call(_text)))
-		if not (StrLen(_text)) {
-			return Chr(8203), this.hide()
-		} else return _text
+	return _text
 	}
 	_onInvoke := ""
 	onInvoke {
