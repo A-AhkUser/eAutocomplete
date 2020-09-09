@@ -134,6 +134,7 @@
 		} else this.Menu._setSuggestionList()
 	}
 		_shouldTrigger(ByRef _caretPos:="") {
+			local
 			_HostControlWrapper := this._HostControlWrapper
 			_atWordBufferPos := "", _caretPos := _HostControlWrapper.getCaretPos(_atWordBufferPos)
 		return _atWordBufferPos
@@ -162,14 +163,14 @@
 		return _suggestion
 		}
 		__remplacement(_suggestion, ByRef _expandModeOverride:="") {
-		return _suggestion . "_TEST"
+		return _suggestion
 		}
 
 	_infoTipInvocationHandler(_text) {
 	return this._onSuggestionLookUp.call(_text)
 	}
 	__suggestionLookUp(_text) {
-	return _text "_" A_ThisFunc
+	return ""
 	}
 	lookUpSuggestion() {
 		_thisHotkey := A_ThisHotkey
