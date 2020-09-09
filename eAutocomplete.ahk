@@ -323,8 +323,8 @@
 		_Hotkey := this.Hotkey
 		_Hotkey._ShouldFire.hook := this.__keyPress__.bind(this)
 		_Hotkey.Menu.hide("+Esc")
-		_Hotkey.Menu.itemsBox.selectPrevious("+Up")
-		_Hotkey.Menu.itemsBox.selectNext("+Down")
+		_Hotkey.Menu.itemsBox.selectPrevious("Up")
+		_Hotkey.Menu.itemsBox.selectNext("Down")
 		_Hotkey.complete("Tab")
 		_Hotkey.completeAndGoToNewLine("Enter")
 		_Hotkey.lookUpSuggestion("Right")
