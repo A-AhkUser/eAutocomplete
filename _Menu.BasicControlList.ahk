@@ -3,11 +3,11 @@
 	_list := ""
 	itemCount := 0
 	_delimiter := "|"
-	_visibleItems := 5
+	_maxVisibleItems := 5
 	__New(_GUIID) {
 		base.__New(_GUIID)
 		this.delimiter := this.delimiter
-		this.visibleItems := this.visibleItems
+		this.maxVisibleItems := this.maxVisibleItems
 	}
 	delimiter { ; to do: protected
 		set {
@@ -18,19 +18,19 @@
 		return this._delimiter
 		}
 	}
-	visibleItems {
+	maxVisibleItems {
 		set {
 			if ((1 <= value) && (value <= this._MAXITEMS))
-				return this._visibleItems:=Floor(value)
-			else return this._visibleItems
+				return this._maxVisibleItems:=Floor(value)
+			else return this._maxVisibleItems
 		}
 		get {
-		return this._visibleItems
+		return this._maxVisibleItems
 		}
 	}
 	hasVScrollBar {
 		get {
-		return (this.itemCount > this.visibleItems)
+		return (this.itemCount > this.maxVisibleItems)
 		}
 		set {
 		return this.hasVScrollBar
@@ -54,7 +54,7 @@
 	autoWH() {
 		local
 		this._Resizing.getDim(_w, _h, this._list)
-		(this.hasVScrollBar) ? _h -= (this.itemCount - this.visibleItems) * this.itemHeight
+		(this.hasVScrollBar) ? _h -= (this.itemCount - this.maxVisibleItems) * this.itemHeight
 		this.resize(_w, _h)
 	}
 	__click() {
