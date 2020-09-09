@@ -142,11 +142,11 @@
 
 	complete(_eventInfo_:=-1) {
 		if (_eventInfo_ > -1)
-			(this.Menu.isAvailable() && this._complete(this.Menu.itemsBox.selection.text, _eventInfo_))
+			this._complete(this.Menu.itemsBox.selection.text, _eventInfo_)
 	}
 	completeAndGoToNewLine(_eventInfo_:=-1) {
 		if (_eventInfo_ > -1)
-			(this.Menu.isAvailable() && this._complete(this.Menu.itemsBox.selection.text, _eventInfo_, -1))
+			this._complete(this.Menu.itemsBox.selection.text, _eventInfo_, -1)
 	}
 	_complete(_selectedItemText, _variant:=0, _expandModeOverride:="") {
 		this._completor(this.WordList._current.Query._history.1, _selectedItemText, _expandModeOverride, _variant)
@@ -157,6 +157,8 @@
 			if (_source.deleteItem(_suggestion))
 				_source.insertItem(_suggestion)
 			_r := this[(_variant) ? "_onReplacement" : "_onComplete"].call(_suggestion, _expandModeOverride)
+			if not (this.Menu.isAvailable())
+				Exit
 		return _r, this.Menu._setSuggestionList() ; this.call()
 		}
 		__complete(_suggestion, ByRef _expandModeOverride:="") {
