@@ -176,7 +176,7 @@ You can find below all properties available for the ``WordList`` object:
 
 || property | description | default value
 | :---: | :---: | :---: | :---: |
-|| ``collectAt``</br>*[UNSIGNED_INTEGER]* | Specify how many times a 'word' absent from the wordlist should be typed before being actually collected by the instance. Instance's concept of 'word' is affected by the setting of the ``query.word`` member. Once collected, words are valid during a single session (see also: `learnWords`). | `4` |
+|| ``collectAt``</br>*[UNSIGNED_INTEGER]* | Specify how many times a 'word' absent from the wordlist should be typed before being actually collected by the instance. Instance's concept of 'word' is affected by the setting of the ``query.word`` member. Once collected, words are valid during a single session (see also: `learnWords`). Each time you set this value, all internal instance's counters are reset: a given *hapax legomenon* must anew typed `collectAt` time(s) to trigger the collecting mechanism (that is, regardless of how many times it has been typed so far).  | `4` |
 || ``collectWords``</br>*[BOOLEAN]* | Specify whether or not an instance should collect 'words' at their `collectAt`-nth onset. Once collected, words are valid during a single session (see also: `learnWords`). | `true` |
 || ``learnWords``</br>*[BOOLEAN]* | If the value evaluates to `true` at the time the eAutocomplete's current wordlist [is replaced by a new one](#available-properties) or at the time the the script exits, collected words will be stored into the instance's export file. | `false` |
 || ``name``</br>*[STRING] [READ_ONLY]* | The name of the wordlist. | *runtime/user-defined* |
