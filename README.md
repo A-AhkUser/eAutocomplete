@@ -186,6 +186,11 @@ You can find below all properties available for the ``WordList`` object:
 || ``edgeKeys``</br>*[STRING]* | A list of zero or more characters, considered as not being part of a 'word', that is, all characters that can work as outer edges of a word. Space characters - space, tab, and newlines - are always considered as end keys. | `"\/\|?!,;.:(){}[]'""<>@="` |
 || ``minLength``</br>*[UNSIGNED_INTEGER]* | Set the minimum number of characters a word must contain to be actually seen as a 'word'. | `2` |
 
+
+> Note: the collecting/learning mechanism is case (in)sensitive if the wordlist has been created as case (in)sensitive.
+
+> Known limitation: for now, the script is unable to make a distinction between 'edge chars' and [symbols commonly used in the regex syntax](https://www.autohotkey.com/docs/misc/RegEx-QuickRef.htm#Common): if you want to use a regex symbol as such (by setting ``(this).query.sift.option`` to `"REGEX"`), it must not be listed in ``edgeKeys``.
+
 ##
 
 ***
