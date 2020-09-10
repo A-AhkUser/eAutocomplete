@@ -50,7 +50,14 @@
 	_collectAt := 4
 	collectAt {
 		set {
-		return (not ((value:=Floor(value)) > 0)) ? this._collectAt : this._collectAt:=value
+		local
+			if ((value:=Floor(value)) > 0) {
+				for _hapax in this._hapaxLegomena {
+					this._hapaxLegomena[_hapax] := (this.isHapax(_hapax)) ? 0 : value
+				}
+			this._collectAt := value
+			}
+		return this._collectAt
 		}
 		get {
 		return this._collectAt
@@ -142,8 +149,9 @@
 		StringCaseSense % this._caseSensitive
 		if _match not in %_hapaxes_%
 			_hapaxLegomena[_match] := 0, this._hapaxes_ .= _match . ","
-		if (++_hapaxLegomena[_match] = this.collectAt)
+		if (_hapaxLegomena[_match] + 1 = this.collectAt)
 			this.insertItem(_match)
+		++_hapaxLegomena[_match]
 		StringCaseSense % _stringCaseSense
 	}
 	deleteItem(_value) {
