@@ -2,10 +2,11 @@
 	static _table := {}
 	static _current_ := ""
 	_subsections := {}
-	_hapaxLegomena := {}
-	_hapaxes_ := ""
+	_hapaxLegomena := ComObjCreate("Scripting.Dictionary")
 	_exportPath := ""
-	__New(_sourceName, _caseSensitive:=false, _autoSort:=false, _bypass_:=false) {
+	__New(_sourceName, _caseSensitive:=false, _autoSort:=false, _bypass_:=false) {	
+		; static vbBinaryCompare := 0
+		; static vbTextCompare := 1
 		if not (StrLen(_sourceName) || _bypass_) {
 			throw Exception("Invalid source name.", -1)
 		return
@@ -16,6 +17,7 @@
 		this._caseSensitive := !!_caseSensitive
 		this._sortCS := ""
 		ObjRawSet(this.Query.Sift, "_caseSensitive", _caseSensitive)
+		this._hapaxLegomena.CompareMode := !_caseSensitive
 		this._autosort := !!_autoSort
 		this._name := _sourceName
 	return this._table[_sourceName] := this
@@ -53,7 +55,7 @@
 		local
 			if ((value:=Floor(value)) > 0) {
 				for _hapax in this._hapaxLegomena {
-					this._hapaxLegomena[_hapax] := (this.isHapax(_hapax)) ? 0 : value
+					this._hapaxLegomena.item[_hapax] := (this.isHapax(_hapax)) ? 0 : value
 				}
 			this._collectAt := value
 			}
@@ -144,15 +146,12 @@
 	}
 	__hapax(_match) {
 		local
-		_hapaxLegomena := this._hapaxLegomena, _hapaxes_ := this._hapaxes_
-		_stringCaseSense := A_StringCaseSense
-		StringCaseSense % this._caseSensitive
-		if _match not in %_hapaxes_%
-			_hapaxLegomena[_match] := 0, this._hapaxes_ .= _match . ","
-		if (_hapaxLegomena[_match] + 1 = this.collectAt)
+		_hapaxLegomena := this._hapaxLegomena
+		if not (_hapaxLegomena.Exists(_match))
+			_hapaxLegomena.Add(_match, 0)
+		if (_hapaxLegomena.item[_match] + 1 = this.collectAt)
 			this.insertItem(_match)
-		++_hapaxLegomena[_match]
-		StringCaseSense % _stringCaseSense
+		++_hapaxLegomena.item[_match]
 	}
 	deleteItem(_value) {
 		local
@@ -190,6 +189,7 @@
 		; MsgBox % A_ThisFunc
 		if (this.learnWords)
 			this.update()
+		this._hapaxLegomena := ""
 	}
 	update() {
 		; MsgBox, 16,, % this._exportPath
