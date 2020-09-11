@@ -52,7 +52,9 @@
 		local
 		_coordModeToolTip := A_CoordModeToolTip
 		CoordMode, ToolTip, Screen
-		ToolTip, % this._tip:=this._getText(), % this._lastFoundX, this._lastFoundY, % this.TT_WHICH
+		_tip := this._tip := this._getText()
+		if (StrLen(_tip))
+			ToolTip, % _tip, % this._lastFoundX, this._lastFoundY, % this.TT_WHICH
 		CoordMode, ToolTip, % _coordModeToolTip
 	}
 	show() {
