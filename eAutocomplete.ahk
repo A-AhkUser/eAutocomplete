@@ -353,7 +353,7 @@
 	}
 	__Version {
 		get {
-			static __Version := ("2.0.0 α", new eAutocomplete())
+			static __Version := ("2.0.0-beta", new eAutocomplete())
 		return __Version
 		}
 		set {
