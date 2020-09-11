@@ -157,9 +157,7 @@
 			if (_source.deleteItem(_suggestion))
 				_source.insertItem(_suggestion)
 			_r := this[(_variant) ? "_onReplacement" : "_onComplete"].call(_suggestion, _expandModeOverride)
-			if not (this.Menu.isAvailable())
-				Exit
-		return _r, this.Menu._setSuggestionList() ; this.call()
+		return (this.Menu.isAvailable() ? _r : ""), this.Menu._setSuggestionList() ; this.call()
 		}
 		__complete(_suggestion, ByRef _expandModeOverride:="") {
 		return _suggestion
