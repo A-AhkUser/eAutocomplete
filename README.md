@@ -77,10 +77,10 @@ The key features provided by the script are accessible using keyboard shortcuts,
 * Press the <kbd>Tab</kbd> key to complete a pending word with the selected suggestion (the top most suggestion is selected by default either when the menu drops or is updated upon match or when you invoke it).
 * Use both the <kbd>Down</kbd> and <kbd>Up</kbd> arrow keys to select from the list all other available suggestions. Hitting <kbd>Up</kbd> while the first item is selected will bring you to the last one while hitting <kbd>Down</kbd> on the last item will bring you to the first one.
 * Long press <kbd>Tab</kbd> to replace the current partial string (should call the [onReplacement](#onreplacement) callback, if any).
-* The <kbd>Enter</kbd> hotkey are functionally equivalent to the <kbd>Tab</kbd> one except that it also moves the caret to the next line at the same time.
+* The <kbd>Enter</kbd> hotkey is functionally equivalent to the <kbd>Tab</kbd> one except that it also moves the caret to the next line at the same time.
 * Press and hold <kbd>⯈</kbd> (that is, the right arrow key) to look up the selected suggestion's associated info tip (should call the [onSuggestionLookUp](#onsuggestionlookup) callback, if any).
 * The menu can be hidden by pressing the combination <kbd>Shift</kbd>+<kbd>Esc</kbd>.
-* If [`autoSuggest`](#available-properties) is disabled or if you previously hid the menu, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Down</kbd> displays the menu, assuming one or more suggestions are available.
+* If [`autoSuggest`](#available-properties) is disabled or if you previously hid the menu, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Down</kbd> displays the menu, assuming one or more suggestions are available and that the caret is positioned in such a way that completion is practicable.
 
 An instance can optionally learn *hapax legomena* at their first onset (or simply collect them for use in a single session) by setting the respective value of the given [wordlist's `learnWords` and `collectWords` properties](#custom-autocomplete-lists).
 
@@ -178,12 +178,12 @@ You can find below all properties available for the ``WordList`` object:
 | :---: | :---: | :---: | :---: |
 || ``collectAt``</br>*[UNSIGNED_INTEGER]* | Specify how many times a 'word' absent from the wordlist should be typed before being actually collected by the instance. Instance's concept of 'word' is affected by the setting of the ``query.word`` member. Once collected, words are valid during a single session (see also: `learnWords`). Each time you set this value, all internal instance's counters are reset: a given non-yet collected 'word' must anew be typed `collectAt` time(s) to trigger the collecting mechanism (that is, regardless of how many times it has been typed so far).  | `4` |
 || ``collectWords``</br>*[BOOLEAN]* | Specify whether or not an instance should collect 'words' at their `collectAt`-nth onset. Once collected, words are valid during a single session (see also: `learnWords`). | `true` |
-|| ``learnWords``</br>*[BOOLEAN]* | If the value evaluates to `true` at the time the eAutocomplete's current wordlist [is replaced by a new one](#available-properties) or at the time the script exits, collected words will be stored into the instance's export file. | `false` |
+|| ``learnWords``</br>*[BOOLEAN]* | If the value evaluates to `true` at the time the eAutocomplete's current wordlist [is replaced by a new one](#available-properties) or at the time the script exits, collected words **and the ranking of all the entries of the given wordlist, based on their respective recentness** will be stored into the instance's export file. | `false` |
 || ``name``</br>*[STRING] [READ_ONLY]* | The name of the wordlist. | *runtime/user-defined* |
 | **query.sift** | | | |
 || ``option``</br>*[SIFT_REGEX_OPTION]* | One of the following `Sift_Regex` options:</br></br>`IN`	*Needle anywhere IN Haystack item*</br>`LEFT`	*Needle is to LEFT or beginning of Haystack item*</br>`RIGHT`	*Needle is to RIGHT or end of Haystack item*</br>`EXACT`	*Needle is an EXACT match to Haystack item*</br>`REGEX`	*Needle is an REGEX expression to check against Haystack item*</br>`OC`	*Needle is ORDERED CHARACTERS to be searched for even non-consecutively but in the given order in Haystack item*</br>`OW`	*Needle is ORDERED WORDS to be searched for even non-consecutively but in the given order in Haystack item*</br>`UC`	*Needle is UNORDERED CHARACTERS to be search for even non-consecutively and in any order in Haystack item*</br>`UW`	*Needle is UNORDERED WORDS to be search for even non-consecutively and in any order in Haystack item*</br>(see also: [Sift_Regex](https://www.autohotkey.com/boards/viewtopic.php?t=7302))| `"LEFT"` |
 | **query.word** | | | |
-|| ``edgeKeys``</br>*[STRING]* | A list of zero or more characters, considered as not being part of a 'word', that is, all characters that can work as outer edges of a word. Space characters - space, tab, and newlines - are always considered as end keys. | `"\/\|?!,;.:(){}[]'""<>@="` |
+|| ``edgeKeys``</br>*[STRING]* | A list of zero or more characters, considered as not being part of a 'word', that is, all characters that can work as outer edges of a word. Space characters - space, tab, and newlines - are always considered as edge keys. | `"\/\|?!,;.:(){}[]'""<>@="` |
 || ``minLength``</br>*[UNSIGNED_INTEGER]* | Set the minimum number of characters a word must contain to be actually seen as a 'word'. | `2` |
 
 
@@ -255,7 +255,7 @@ ExitApp
 
 | property | description | default value
 | :---: | :---: | :---: |
-| ``eAutocomplete.autoSuggest`` *[BOOLEAN]* | If set to `true` the autocompletion feature automatically displays a menu as soon as suggestions are available. Otherwise, if set to `false`, the <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Down</kbd> hotkey can display the menu, assuming one or more suggestions are available. | `true` |
+| ``eAutocomplete.autoSuggest`` *[BOOLEAN]* | If set to `true` the autocompletion feature automatically displays a menu as soon as suggestions are available. Otherwise, if set to `false`, the <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Down</kbd> hotkey can display the menu, assuming one or more suggestions are available and that the caret is positioned in such a way that completion is practicable. | `true` |
 | ``eAutocomplete.disabled`` *[BOOLEAN]* | Disable (`true`) or enable (`false`), if need be, the autocomplete feature. Use the [unwrap method](#available-methods) instead to deprive a control of its eAutocomplete word completion feature and interface. | `false` |
 | ``eAutocomplete.keypressThreshold `` *[UNSIGNED_INTEGER]* | The number of milliseconds that must pass before eAutocomplete starts searching for entries that match in the autocomplete list. Keystroke events separated by a period of less than this value are considered as part of an influx and are discarded as such while a single call is buffered: in other words, when you start to type in the target control and a brief rest of this property's value (in milliseconds) occurred since the last keystroke, eAutocomplete actually starts searching for entries that match in the autocomplete list. Specifying a number less than 65 is the same as specifying 65. | `225` |
 | ``eAutocomplete.resource`` *[SOURCE_NAME/WORDLIST_OBJECT]* | [setter] Specifies the [autocomplete list](#custom-autocomplete-lists) to use. The value must be the name of a [Wordlist instance](#the-wordlist-object).</br>[getter] Returns the current Wordlist instance used for autocompletion. | *runtime/user-defined* |
@@ -418,7 +418,7 @@ eAutocomplete
 | member | property | description | default value |
 | :- | :---: | :---: | :---: |
 | **menu** |  |  |  |
-|| ``bkColor``</br>*[COLOR_VALUE/COLOR_NAME]*</br>(**getter not implemented**) | Set the background color of the autocomplete menu by specifying one of the 16 primary [HTML color names](https://www.autohotkey.com/docs/commands/Progress.htm#colors) or a 6-digit RGB color value. | `0xF0F0F0` |
+|| ``bkColor``</br>*[COLOR_VALUE/COLOR_NAME]*</br>(**getter not implemented**) | Set the background color of the autocomplete menu by specifying one of the 16 primary [HTML color names](https://www.autohotkey.com/docs/commands/Progress.htm#colors) or a 6-digit RGB color value (in this latter case, the 0x prefix is optional). | `0xF0F0F0` |
 || ``positioningStrategy``</br>*[POS_STRATEGY]* | Set or get the current strategy used to automatically place the autocomplete menu. The two following positioning strategies are available:</br>``Menu``	*the list of choices is displayed in the vicinity of the host control's caret*</br>``DropDownList``	*the menu is displayed beneath the host control, in the manner of a combobox menu* | `"Menu"` |
 || ``transparency``</br>*[UNSIGNED_INTEGER]* | Specify a number between **10** and 255 to indicate the autocomplete menu's degree of transparency. | `255` |
 | **menu.itemsBox** | | | |
@@ -428,7 +428,7 @@ eAutocomplete
 || ``text``</br>*[STRING]* | - | *runtime/user-defined* |
 | **menu.itemsBox.font** | | | |
 || ``color``</br>*[COLOR_VALUE/COLOR_NAME]*</br>(**getter not implemented**) | Set the font color for the autocomplete menu's list box by specifying one of the 16 primary [HTML color names](https://www.autohotkey.com/docs/commands/Progress.htm#colors) or a 6-digit RGB color value. | `"000000"` |
-|| ``name``</br>*[FONT_DENOMINATION]* | Set or get the font typeface for the for the autocomplete menu's list box. | `"Segoe UI"` |
+|| ``name``</br>*[FONT_DENOMINATION]* | Set or get the font typeface for the autocomplete menu's list box. | `"Segoe UI"` |
 || ``size``</br>*[UNSIGNED_INTEGER]*</br>(**getter not implemented**) | Set the font size for the autocomplete menu's list box. | `12` |
 | **menu.positioning** |  |  |  |
 || ``offsetX``</br>*[INTEGER]* | (**The menu's positioning strategy must be "Menu"**) The offset from the current host control's caret position to which display the autocomplete menu, on the x-axis. The offset value can be negative. | `5` |
@@ -436,7 +436,7 @@ eAutocomplete
 | **menu.infotip.positioning** | | | |
 || ``offsetX``</br>*[INTEGER]* | The offset from the abscissa of the selected suggestion's upper-left corner to which display the infotip. The offset value can be negative. | `5` |
 | **completor** | | | |
-|| ``correctCase``</br>*[INTEGER]* | Determine whether the eAutocomplete's completor simply completes the pending word (that is, preserving this latter's case) or actually replaces it by the autocomplete menu's selected suggestion. | `false` |
+|| ``correctCase``</br>*[INTEGER]* | Determine whether the eAutocomplete's completor simply completes the pending word (that is, preserving this latter's case) or actually replaces it by the autocomplete menu's selected suggestion (or more precisely, by the return value of either the [``onComplete`` or the ``onReplacement`` callback](#event-handling), as appropriate). | `false` |
 || ``expandMode``</br>*[BOOLEAN]* | Determine whether or not the eAutocomplete's completor automatically expands or not the complete string with a space upon text expansion/replacement. | `1` |
 
 
