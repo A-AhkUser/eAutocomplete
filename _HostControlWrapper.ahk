@@ -80,26 +80,39 @@
 	}
 	getCaretPos(ByRef _atWordBufferPos:="", ByRef _startPos:="", ByRef _endPos:="") {
 		local
+		_startPos := _endPos := "", this._getCaretPos(_startPos, _endPos)
+		if (IsByref(_atWordBufferPos)) {
+			_atWordBufferPos := this._isAtWordBufferPos(_startPos, _endPos)
+		}
+	return _endPos
+	}
+	_getCaretPos(ByRef _startPos:="", ByRef _endPos:="") {
+		local
 		static EM_GETSEL := 0xB0
 		VarSetCapacity(_startPos, 4, 0), VarSetCapacity(_endPos, 4, 0)
 		SendMessage, % EM_GETSEL, &_startPos, &_endPos,, % "ahk_id " . this.lastFound
-		_caretPos := ""
-		if (IsByref(_atWordBufferPos)) {
-			_caretPos := NumGet(_endPos)
-			_atWordBufferPos := ((_startPos = _endPos) && (StrLen(RegExReplace(SubStr(this.lastFoundValue, _caretPos, 2), "\s$")) <= 1))
-		}
-	return _caretPos
+	return _endPos := NumGet(_endPos), (IsByref(_startPos) && _startPos := NumGet(_startPos))
+	}
+	_isAtWordBufferPos(_startPos, _endPos) {
+		return ((_startPos = _endPos) && (StrLen(RegExReplace(SubStr(this.lastFoundValue, _endPos, 2), "\s$")) <= 1))
+	}
+	_getTextFromEvent(ByRef _text, _eventParam1, _eventParam2) {
+		local
+		static OBJID_CLIENT := 0xFFFFFFFC
+		_acc := this._Utils.Acc.ObjectFromEvent(_idChild_, _eventParam1, OBJID_CLIENT, _eventParam2)
+		try _text := _acc.accValue(0)
+		catch
+			_text := ""
 	}
 	call(_param1, _param2, _msg, _hwnd) {
 		local
-		static OBJID_CLIENT := 0xFFFFFFFC
 		static EVENT_FOCUS := 0x8003
 		static EVENT_VALUE := 0x8004
 		Critical
 		if (_msg = EVENT_VALUE) {
 			if (this.instances.hasKey(_param1)) {
-				_acc := this._Utils.Acc.ObjectFromEvent(_idChild_, _param1, OBJID_CLIENT, _param2)
-				try this.lastFoundValue := _acc.accValue(0)
+				_text := "", this._getTextFromEvent(_text, _param1, _param2)
+				try this.lastFoundValue := _text
 				this.__value.call()
 			}
 		} else if (_msg = EVENT_FOCUS) {
