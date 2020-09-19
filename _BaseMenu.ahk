@@ -12,7 +12,7 @@
 		_GUI := A_DefaultGUI
 		GUI, New
 		GUI +hwnd_GUIID
-		GUI, +ToolWindow -Caption -SysMenu ; +Caption
+		GUI, +ToolWindow -Caption -SysMenu +AlwaysOnTop ; +Caption
 		GUI, +E%WS_EX_PALETTEWINDOW% +E%WS_EX_NOACTIVATE%
 		this.GUIID := _GUIID
 		GUI, Margin, 0, 0
