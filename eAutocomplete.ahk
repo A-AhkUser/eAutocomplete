@@ -51,7 +51,7 @@
 	WordList {
 		set {
 			throw Exception("This member is protected (read only).", -1)
-		return this.WordList
+		; return this.WordList
 		}
 		get {
 		return this._WordList
@@ -60,7 +60,7 @@
 	Menu {
 		set {
 			throw Exception("This member is protected (read only).", -1)
-		return this.Menu
+		; return this.Menu
 		}
 		get {
 		return this._Menu
@@ -69,7 +69,7 @@
 	Completor {
 		set {
 			throw Exception("This member is protected (read only).", -1)
-		return this.Completor
+		; return this.Completor
 		}
 		get {
 		return this._Completor
@@ -81,7 +81,7 @@
 		try _lastFound := "", this._HostControlWrapper.wrap(_hHost, this.__focus__.bind(this))
 		catch _exception {
 			throw Exception(_exception.message, -1, _exception.extra)
-		return
+		; return
 		}
 		new this._HostControlWrapper.EventsMessenger(_hHost)
 	}
@@ -91,7 +91,7 @@
 		try this._HostControlWrapper.EventsMessenger._dispose(_hHost)
 		catch _exception {
 			throw Exception(_exception.message, -1, _exception.extra)
-		return
+		; return
 		}
 		this._HostControlWrapper.unwrap(_hHost, this.__focus__.bind(this))
 	}
