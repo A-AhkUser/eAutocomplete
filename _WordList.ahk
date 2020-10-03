@@ -9,7 +9,7 @@
 		; static vbTextCompare := 1
 		if not (StrLen(_sourceName) || _bypass_) {
 			throw Exception("Invalid source name.", -1)
-		return
+		; return
 		}
 		this.Word := new this.Word()
 		this.Query := new this.Query(this.Word)
@@ -28,7 +28,7 @@
 		}
 		set {
 			throw Exception("The property is read only.", -1)
-		return this._name
+		; return this._name
 		}
 	}
 	_learnWords := false
@@ -79,12 +79,12 @@
 		if (_fileFullPath <> "") {
 			if not (FileExist(_fileFullPath)) {
 				throw Exception("The resource could not be found.",, _fileFullPath)
-			return
+			; return
 			}
 			try _fileObject:=FileOpen(_fileFullPath, 4+8, "UTF-8")
 			catch {
 				throw Exception("Failed attempt to open the file.")
-			return
+			; return
 			}
 			_resource := _fileObject.read(), _fileObject.close()
 		}
