@@ -216,7 +216,7 @@
 		set {
 			if not (this.hasSource(value)) {
 				throw Exception("The word list does not exist.", -1, value)
-			return this._current
+			; return this._current
 			}
 			this.__Delete()
 		return this._current, eAutocomplete._WordList._current_:=value
