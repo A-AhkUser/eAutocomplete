@@ -35,7 +35,7 @@
 			if ((value = 0) || (value = 1))
 				return this._expandMode := value
 			throw Exception("Invalid value.", -1, value)
-		return this.expandMode
+		; return this.expandMode
 		}
 		get {
 		return this._expandMode
