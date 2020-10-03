@@ -9,7 +9,7 @@
 		_idProcess := "", DllCall("User32.dll\GetWindowThreadProcessId", "Ptr", _hwnd, "UIntP", _idProcess, "UInt")
 		if not (_idProcess) {
 			throw Exception("Could not retrieve the identifier of the process that created the window.")
-		return
+		; return
 		}
 		this.idProcess := _idProcess
 		this.instances[ _ID:=this.ID:=_hwnd+0 ] := this
