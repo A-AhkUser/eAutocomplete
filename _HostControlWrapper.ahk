@@ -23,11 +23,11 @@
 		DetectHiddenWindows % _detectHiddenWindows
 		if not (_class ~= "^(" . this.COMPATIBLE_CLASSES . ")$") {
 			throw Exception("The host control either does not exist or is not a representative of the class " . this.COMPATIBLE_CLASSES . ".", -1, _class)
-		return false
+		; return false
 		}
 		if (this.instances.hasKey(_hControlAsDigit)) {
 			throw Exception("Could not wrap the control (the control is already interfaced).", -1, _hControlAsDigit)
-		return false
+		; return false
 		}
 		this.instances[_hControlAsDigit] := _class
 		_hwnd := ""
