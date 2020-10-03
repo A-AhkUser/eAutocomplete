@@ -8,7 +8,7 @@
 	Word {
 		set {
 			throw Exception("The property is read only.", -1)
-		return this._Word
+		; return this._Word
 		}
 		get {
 		return this._Word
@@ -17,7 +17,7 @@
 	Sift {
 		set {
 			throw Exception("The property is read only.", -1)
-		return this._Sift
+		; return this._Sift
 		}
 		get {
 		return this._Sift
@@ -46,13 +46,13 @@
 		caseSensitive {
 			set {
 				throw Exception("The property is read only.", -1)
-			return this.caseSensitive
+			; return this.caseSensitive
 			}
 		}
 		delimiter {
 			set {
 				throw Exception("The property is read only.", -1)
-			return this.delimiter
+			; return this.delimiter
 			}
 		}
 	}
@@ -82,7 +82,7 @@
 				value := Trim(value)
 				if not (value ~= "i)^(IN|LEFT|RIGHT|EXACT|REGEX|OC|OW|UW|UC)$") {
 					throw Exception("Invalid option.", -1, value)
-				return this._option
+				; return this._option
 				}
 			return this._option:=value, this.needle := this._lastNeedle
 			}
