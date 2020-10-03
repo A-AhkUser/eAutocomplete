@@ -124,7 +124,7 @@
 				}
 			}
 			throw Exception("The Positioning strategy is not available.", -1, value)
-		return this._posStrategy
+		; return this._posStrategy
 		}
 		get {
 		return this._posStrategy
