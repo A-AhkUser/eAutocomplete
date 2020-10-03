@@ -3,7 +3,7 @@
 		local
 		if not (StrLen(Trim(_keyName))) {
 			throw Exception("Invalid key name", -1)
-		return
+		; return
 		}
 		this.ifFn := _hkIfFn, this.keyName := _keyName, this.fn := _fn
 		RegExMatch(_keyName, "i)(\w+|.)(?:[ `t]Up)?$", _match)
@@ -45,7 +45,7 @@ Class _LongPressHotkey extends eAutocomplete._Hotkey {
 			local
 			if not (IsObject(_fn) || _fn:=Func(_fn)) {
 				throw Exception("Invalid callback.", -1)
-			return
+			; return
 			}
 			this.key := _key, this.timeout := _timeout
 			this._fn := _fn
