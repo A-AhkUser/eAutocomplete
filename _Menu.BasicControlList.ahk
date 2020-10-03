@@ -92,7 +92,7 @@
 				}
 			}
 			throw Exception("The resizing strategy is not available.", -1, value)
-		return this._resizingStrategy
+		; return this._resizingStrategy
 		}
 		get {
 		return this._resizingStrategy
